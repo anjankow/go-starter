@@ -49,8 +49,9 @@ go-build: ##- (opt) Runs go build.
 go-lint: ##- (opt) Runs golangci-lint.
 	golangci-lint run --timeout 5m
 
-go-generate: ##- (opt) Generates the internal/api/handlers/handlers.go binding.
+go-generate: ##- (opt) Go code generation: wire, internal/api/handlers/handlers.go binding
 	gsdev handlers gen
+	cd internal/api && wire
 
 check-handlers: ##- (opt) Checks if implemented handlers match their spec (path).
 	gsdev handlers check
@@ -71,7 +72,7 @@ check-script-dir: ##- (opt) Ensures all scripts/**/*.go files have the "//go:bui
 	@echo "make check-script-dir"
 	@find ./scripts -type f -name '*.go' | xargs -L1 grep -L '//go:build scripts' || (echo "Error: Found unset '//go:build scripts' in ./scripts/**/*.go!" && exit 1)
 
-# https://github.com/gotestyourself/gotestsum#format 
+# https://github.com/gotestyourself/gotestsum#format
 # w/o cache https://github.com/golang/go/issues/24573 - see "go help testflag"
 # note that these tests should not run verbose by default (e.g. use your IDE for this)
 # TODO: add test shuffling/seeding when landed in go v1.15 (https://github.com/golang/go/issues/28592)
@@ -105,7 +106,7 @@ go-test-print-slowest: ##- Print slowest running tests (must be done after runni
 	gotestsum tool slowest --jsonfile /tmp/test.log --threshold 2s
 
 # TODO: switch to "-m direct" after go 1.17 hits: https://github.com/golang/go/issues/40364
-get-go-outdated-modules: ##- (opt) Prints outdated (direct) go modules (from go.mod). 
+get-go-outdated-modules: ##- (opt) Prints outdated (direct) go modules (from go.mod).
 	@((go list -u -m -f '{{if and .Update (not .Indirect)}}{{.}}{{end}}' all) 2>/dev/null | grep " ") || echo "go modules are up-to-date."
 
 watch-tests: ##- Watches *.go files and runs package tests on modifications.
@@ -313,7 +314,7 @@ watch-swagger: ##- Watches *.yml|yaml|gotmpl files in /api and runs 'make swagge
 ### -----------------------
 
 # Got license issues with some dependencies? Provide a custom lichen --config
-# see https://github.com/uw-labs/lichen#config 
+# see https://github.com/uw-labs/lichen#config
 get-licenses: ##- Prints licenses of embedded modules in the compiled bin/app.
 	lichen bin/app
 
