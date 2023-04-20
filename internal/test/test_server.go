@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"allaboutapps.dev/aw/go-starter/internal/api"
+	"allaboutapps.dev/aw/go-starter/internal/api/router"
 	"allaboutapps.dev/aw/go-starter/internal/config"
 )
 
@@ -68,6 +69,11 @@ func execClosureNewTestServer(ctx context.Context, t *testing.T, config config.S
 	s, err := api.InitNewServerWithDB(config, db)
 	if err != nil {
 		t.Fatalf("Failed to init i18n service: %v", err)
+	}
+	router.Init(s)
+
+	if !s.Ready() {
+		t.Fatalf("Server not ready, can't execute the closure")
 	}
 
 	closure(s)
