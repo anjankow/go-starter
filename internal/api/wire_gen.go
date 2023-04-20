@@ -20,58 +20,68 @@ import (
 
 // Injectors from wire.go:
 
+// InitNewServer returns a new Server instance.
+// All the components are initialized via go wire according to the configuration.
+// WARNING! Exceptions are Echo and Router, which are not initialized.
+// After this call make sure that router.Init(s) is invoked.
 func InitNewServer(cfg config.Server) (*Server, error) {
 	db, err := InitDB(cfg)
 	if err != nil {
 		return nil, err
 	}
-	service, err := InitI18n(cfg)
+	mailer, err := InitMailer(cfg)
 	if err != nil {
 		return nil, err
 	}
-	mailer, err := InitMailer(cfg, service)
+	service, err := InitPush(cfg, db)
 	if err != nil {
 		return nil, err
 	}
-	pushService, err := InitPush(cfg, db)
+	i18nService, err := InitI18n(cfg)
 	if err != nil {
 		return nil, err
 	}
-	server := NewServer(cfg, db, mailer, pushService, service)
+	server := newServerWithComponents(cfg, db, mailer, service, i18nService)
 	return server, nil
 }
 
+// InitNewServerWithDB returns a new Server instance with the given DB instance
+// All the other components are initialized via go wire according to the configuration.
+// WARNING! Exceptions are Echo and Router, which are not initialized.
+// After this call make sure that router.Init(s) is invoked.
 func InitNewServerWithDB(cfg config.Server, db *sql.DB) (*Server, error) {
-	service, err := InitI18n(cfg)
+	mailer, err := InitMailer(cfg)
 	if err != nil {
 		return nil, err
 	}
-	mailer, err := InitMailer(cfg, service)
+	service, err := InitPush(cfg, db)
 	if err != nil {
 		return nil, err
 	}
-	pushService, err := InitPush(cfg, db)
+	i18nService, err := InitI18n(cfg)
 	if err != nil {
 		return nil, err
 	}
-	server := NewServer(cfg, db, mailer, pushService, service)
+	server := newServerWithComponents(cfg, db, mailer, service, i18nService)
 	return server, nil
 }
 
 // wire.go:
 
-// NewServer returns NewServer instance with all the components initialized.
-// Exceptions are Echo and Router, which are not initialized.
-// After this call make sure that router.Init(s) is invoked.
-func NewServer(
+// newServerWithComponents is used by wire to initialize the server components.
+// Components not listed here won't be handled by wire and should be initialized separately.
+// Components which shouldn't be handled must be labeled `wire:"-"` in Server struct.
+func newServerWithComponents(
 	cfg config.Server,
-	db *sql.DB, mailer2 *mailer.Mailer, push2 *push.Service, i18n2 *i18n.Service,
+	db *sql.DB,
+	mail *mailer.Mailer,
+	pusher *push.Service, i18n2 *i18n.Service,
 ) *Server {
 	return &Server{
 		Config: cfg,
 		DB:     db,
-		Mailer: mailer2,
-		Push:   push2,
+		Mailer: mail,
+		Push:   pusher,
 		I18n:   i18n2,
 	}
 }

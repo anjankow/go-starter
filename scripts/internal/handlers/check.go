@@ -29,12 +29,10 @@ func CheckHandlers(printAll bool) {
 	// we initialize a minimal echo server without any other deps
 	// so we can attach the current defined routes and read them
 	zerolog.SetGlobalLevel(zerolog.Disabled)
-	defaultConfig := config.DefaultServiceConfigFromEnv()
-	defaultConfig.Echo.ListenAddress = ":0"
+	cfg := config.DefaultServiceConfigFromEnv()
+	cfg.Echo.ListenAddress = ":0"
 
-	s := &api.Server{
-		Config: defaultConfig,
-	}
+	s := api.NewServer(cfg)
 	router.Init(s)
 
 	// swaggerspec vs routes

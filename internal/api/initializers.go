@@ -50,7 +50,7 @@ func newDBConnection(ctx context.Context, cfg config.Server) (*sql.DB, error) {
 	return db, nil
 }
 
-func InitMailer(cfg config.Server, i18n *i18n.Service) (m *mailer.Mailer, err error) {
+func InitMailer(cfg config.Server) (m *mailer.Mailer, err error) {
 
 	switch config.MailerTransporter(cfg.Mailer.Transporter) {
 	case config.MailerTransporterMock:

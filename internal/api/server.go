@@ -37,6 +37,13 @@ type Server struct {
 	I18n   *i18n.Service
 }
 
+// NewServer returns an empty server instance with only configuration assigned.
+func NewServer(config config.Server) *Server {
+	return &Server{
+		Config: config,
+	}
+}
+
 func (s *Server) Ready() bool {
 	// all the other components must be initialized by wire
 	return s.Echo != nil &&
