@@ -86,25 +86,9 @@ func runServer() {
 		}))
 	}
 
-	s := api.NewServer(config)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	if err := s.InitDB(ctx); err != nil {
-		cancel()
-		log.Fatal().Err(err).Msg("Failed to initialize database")
-	}
-	cancel()
-
-	if err := s.InitMailer(); err != nil {
-		log.Fatal().Err(err).Msg("Failed to initialize mailer")
-	}
-
-	if err := s.InitPush(); err != nil {
-		log.Fatal().Err(err).Msg("Failed to initialize push service")
-	}
-
-	if err := s.InitI18n(); err != nil {
-		log.Fatal().Err(err).Msg("Failed to initialize i18n service")
+	s, err := api.InitNewServer(config)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to initialize server")
 	}
 
 	router.Init(s)
@@ -123,7 +107,7 @@ func runServer() {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 
-	ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	if err := s.Shutdown(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {

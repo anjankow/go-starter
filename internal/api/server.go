@@ -4,14 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"allaboutapps.dev/aw/go-starter/internal/config"
 	"allaboutapps.dev/aw/go-starter/internal/i18n"
 	"allaboutapps.dev/aw/go-starter/internal/mailer"
-	"allaboutapps.dev/aw/go-starter/internal/mailer/transport"
 	"allaboutapps.dev/aw/go-starter/internal/push"
-	"allaboutapps.dev/aw/go-starter/internal/push/provider"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
@@ -30,34 +27,20 @@ type Router struct {
 type Server struct {
 	Config config.Server
 	DB     *sql.DB
-	Echo   *echo.Echo
-	Router *Router
+
+	// skip for wire: initialized with router.Init(s) function
+	Echo   *echo.Echo `wire:"-"`
+	Router *Router    `wire:"-"`
+
 	Mailer *mailer.Mailer
 	Push   *push.Service
 	I18n   *i18n.Service
 }
 
-func NewServer(config config.Server) *Server {
-	s := &Server{
-		Config: config,
-		DB:     nil,
-		Echo:   nil,
-		Router: nil,
-		Mailer: nil,
-		Push:   nil,
-		I18n:   nil,
-	}
-
-	return s
-}
-
 func (s *Server) Ready() bool {
-	return s.DB != nil &&
-		s.Echo != nil &&
-		s.Router != nil &&
-		s.Mailer != nil &&
-		s.Push != nil &&
-		s.I18n != nil
+	// all the other components must be initialized by wire
+	return s.Echo != nil &&
+		s.Router != nil
 }
 
 func (s *Server) InitDB(ctx context.Context) error {
@@ -81,56 +64,6 @@ func (s *Server) InitDB(ctx context.Context) error {
 	}
 
 	s.DB = db
-
-	return nil
-}
-
-func (s *Server) InitMailer() error {
-	switch config.MailerTransporter(s.Config.Mailer.Transporter) {
-	case config.MailerTransporterMock:
-		log.Warn().Msg("Initializing mock mailer")
-		s.Mailer = mailer.New(s.Config.Mailer, transport.NewMock())
-	case config.MailerTransporterSMTP:
-		s.Mailer = mailer.New(s.Config.Mailer, transport.NewSMTP(s.Config.SMTP))
-	default:
-		return fmt.Errorf("Unsupported mail transporter: %s", s.Config.Mailer.Transporter)
-	}
-
-	return s.Mailer.ParseTemplates()
-}
-
-func (s *Server) InitPush() error {
-	s.Push = push.New(s.DB)
-
-	if s.Config.Push.UseFCMProvider {
-		fcmProvider, err := provider.NewFCM(s.Config.FCMConfig)
-		if err != nil {
-			return err
-		}
-		s.Push.RegisterProvider(fcmProvider)
-	}
-
-	if s.Config.Push.UseMockProvider {
-		log.Warn().Msg("Initializing mock push provider")
-		mockProvider := provider.NewMock(push.ProviderTypeFCM)
-		s.Push.RegisterProvider(mockProvider)
-	}
-
-	if s.Push.GetProviderCount() < 1 {
-		log.Warn().Msg("No providers registered for push service")
-	}
-
-	return nil
-}
-
-func (s *Server) InitI18n() error {
-	i18nService, err := i18n.New(s.Config.I18n)
-
-	if err != nil {
-		return err
-	}
-
-	s.I18n = i18nService
 
 	return nil
 }

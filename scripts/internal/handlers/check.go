@@ -32,7 +32,9 @@ func CheckHandlers(printAll bool) {
 	defaultConfig := config.DefaultServiceConfigFromEnv()
 	defaultConfig.Echo.ListenAddress = ":0"
 
-	s := api.NewServer(defaultConfig)
+	s := &api.Server{
+		Config: defaultConfig,
+	}
 	router.Init(s)
 
 	// swaggerspec vs routes
