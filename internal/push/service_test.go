@@ -9,6 +9,8 @@ import (
 	"allaboutapps.dev/aw/go-starter/internal/push"
 	"allaboutapps.dev/aw/go-starter/internal/push/provider"
 	"allaboutapps.dev/aw/go-starter/internal/test"
+	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -115,5 +117,29 @@ func TestSendMessageWithMultipleProvider(t *testing.T) {
 		tokenCount, err2 := user1.PushTokens().Count(ctx, db)
 		require.NoError(t, err2)
 		assert.Equal(t, int64(1), tokenCount)
+	})
+}
+
+func TestSendMessageSuccessWithGomock(t *testing.T) {
+	test.WithTestPusherGoMock(t, push.ProviderTypeFCM, func(p *push.Service, db *sql.DB, mockProvider *provider.GomockProvider) {
+		ctx := context.Background()
+		fixtures := test.Fixtures()
+
+		user1 := fixtures.User1
+
+		token := uuid.NewString()
+		mockProvider.EXPECT().SendMulticast(gomock.Any(), "Hello", "World").Return([]push.ProviderSendResponse{
+			{
+				Token: token,
+				Valid: true,
+			},
+		})
+
+		err := p.SendToUser(ctx, user1, "Hello", "World")
+		assert.NoError(t, err)
+
+		tokenCount, err2 := user1.PushTokens().Count(ctx, db)
+		require.NoError(t, err2)
+		assert.Equal(t, int64(2), tokenCount)
 	})
 }
