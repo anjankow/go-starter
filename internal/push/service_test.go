@@ -3,6 +3,7 @@ package push_test
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"testing"
 
 	"allaboutapps.dev/aw/go-starter/internal/models"
@@ -10,7 +11,6 @@ import (
 	"allaboutapps.dev/aw/go-starter/internal/push/provider"
 	"allaboutapps.dev/aw/go-starter/internal/test"
 	"github.com/golang/mock/gomock"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -98,42 +98,55 @@ func TestSendMessageWithNoProvider(t *testing.T) {
 }
 
 func TestSendMessageWithMultipleProvider(t *testing.T) {
-	test.WithTestPusher(t, func(p *push.Service, db *sql.DB) {
+	test.WithTestPusherGoMock(t, []push.ProviderType{push.ProviderTypeFCM, push.ProviderTypeAPN}, func(p *push.Service, db *sql.DB, mockProvider map[push.ProviderType]*provider.GomockProvider) {
 		ctx := context.Background()
 		fixtures := test.Fixtures()
 
-		p.ResetProviders()
-		require.Equal(t, 0, p.GetProviderCount())
-
-		mockProviderFCM := provider.NewMock(push.ProviderTypeFCM)
-		mockProviderAPN := provider.NewMock(push.ProviderTypeAPN)
-		p.RegisterProvider(mockProviderAPN)
-		p.RegisterProvider(mockProviderFCM)
 		user1 := fixtures.User1
+
+		// make FCM provider fail but with a valid token
+		mockProvider[push.ProviderTypeFCM].EXPECT().SendMulticast(gomock.Any(), "Hello", "World").
+			Return([]push.ProviderSendResponse{
+				{
+					Err:   errors.New("Failed to send"),
+					Valid: true,
+				},
+			})
+
+		// make APN provider return no error but invalidate the token
+		mockProvider[push.ProviderTypeAPN].EXPECT().SendMulticast(gomock.Any(), "Hello", "World").
+			Return([]push.ProviderSendResponse{
+				{
+					Token: fixtures.User1PushTokenAPN.Token,
+					Valid: false,
+				},
+			})
 
 		err := p.SendToUser(ctx, user1, "Hello", "World")
 		assert.NoError(t, err)
 
-		tokenCount, err2 := user1.PushTokens().Count(ctx, db)
-		require.NoError(t, err2)
-		assert.Equal(t, int64(1), tokenCount)
+		// FCM token should still exist
+		require.NoError(t, fixtures.User1PushToken.Reload(ctx, db))
+		// APN token should be gone
+		require.ErrorIs(t, fixtures.User1PushTokenAPN.Reload(ctx, db), sql.ErrNoRows)
 	})
 }
 
 func TestSendMessageSuccessWithGomock(t *testing.T) {
-	test.WithTestPusherGoMock(t, push.ProviderTypeFCM, func(p *push.Service, db *sql.DB, mockProvider *provider.GomockProvider) {
+	test.WithTestPusherGoMock(t, []push.ProviderType{push.ProviderTypeFCM}, func(p *push.Service, db *sql.DB, mockProvider map[push.ProviderType]*provider.GomockProvider) {
 		ctx := context.Background()
 		fixtures := test.Fixtures()
 
 		user1 := fixtures.User1
+		existingToken := fixtures.User1PushToken
 
-		token := uuid.NewString()
-		mockProvider.EXPECT().SendMulticast(gomock.Any(), "Hello", "World").Return([]push.ProviderSendResponse{
-			{
-				Token: token,
-				Valid: true,
-			},
-		})
+		mockProvider[push.ProviderTypeFCM].EXPECT().SendMulticast(gomock.Any(), "Hello", "World").
+			Return([]push.ProviderSendResponse{
+				{
+					Token: existingToken.Token,
+					Valid: true,
+				},
+			})
 
 		err := p.SendToUser(ctx, user1, "Hello", "World")
 		assert.NoError(t, err)

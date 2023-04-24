@@ -9,27 +9,35 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
-func WithTestPusherGoMock(t *testing.T, providerType push.ProviderType, closure func(p *push.Service, db *sql.DB, mockProvider *provider.GomockProvider)) {
+func WithTestPusherGoMock(t *testing.T, providerTypes []push.ProviderType, closure func(p *push.Service, db *sql.DB, mockProvider map[push.ProviderType]*provider.GomockProvider)) {
 	t.Helper()
 
+	// create requested mock providers
 	mockCtrl := gomock.NewController(t)
-	gomockProvider := provider.NewGomockProvider(mockCtrl)
+	gomockProviders := make(map[push.ProviderType]*provider.GomockProvider, len(providerTypes))
+	for _, providerType := range providerTypes {
+		provider := provider.NewGomockProvider(mockCtrl)
+		// make this mock always identify itself as a certain provider type
+		provider.EXPECT().GetProviderType().AnyTimes().Return(providerType)
 
-	gomockProvider.EXPECT().GetProviderType().AnyTimes().Return(providerType)
+		gomockProviders[providerType] = provider
+	}
 
 	WithTestDatabase(t, func(db *sql.DB) {
 		t.Helper()
-		closure(NewTestPusherGomock(t, gomockProvider, db), db, gomockProvider)
+		closure(NewTestPusherGomock(t, gomockProviders, db), db, gomockProviders)
 	})
 
 	mockCtrl.Finish()
 }
 
-func NewTestPusherGomock(t *testing.T, gomockProvider *provider.GomockProvider, db *sql.DB) *push.Service {
+func NewTestPusherGomock(t *testing.T, gomockProviders map[push.ProviderType]*provider.GomockProvider, db *sql.DB) *push.Service {
 	t.Helper()
 
 	pushService := push.New(db)
-	pushService.RegisterProvider(gomockProvider)
+	for _, provider := range gomockProviders {
+		pushService.RegisterProvider(provider)
+	}
 
 	return pushService
 }
