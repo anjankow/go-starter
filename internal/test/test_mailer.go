@@ -6,6 +6,7 @@ import (
 	"allaboutapps.dev/aw/go-starter/internal/config"
 	"allaboutapps.dev/aw/go-starter/internal/mailer"
 	"allaboutapps.dev/aw/go-starter/internal/mailer/transport"
+	"github.com/golang/mock/gomock"
 )
 
 const (
@@ -48,4 +49,16 @@ func newMailerWithTransporter(t *testing.T, transporter transport.MailTransporte
 	}
 
 	return m
+}
+
+func WithTestMailerGoMock(t *testing.T, closure func(m *mailer.Mailer, goMock *transport.GomockMailTransport)) {
+	t.Helper()
+
+	// create mock controller - to verify the expectations after the test run
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	goMock := transport.NewGomockMailTransport(mockCtrl)
+	// execute closure using goMock
+	closure(newMailerWithTransporter(t, goMock), goMock)
 }

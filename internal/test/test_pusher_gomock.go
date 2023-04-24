@@ -12,8 +12,11 @@ import (
 func WithTestPusherGoMock(t *testing.T, providerTypes []push.ProviderType, closure func(p *push.Service, db *sql.DB, mockProvider map[push.ProviderType]*provider.GomockProvider)) {
 	t.Helper()
 
-	// create requested mock providers
+	// create mock controller - to verify the expectations after the test run
 	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	// create requested mock providers
 	gomockProviders := make(map[push.ProviderType]*provider.GomockProvider, len(providerTypes))
 	for _, providerType := range providerTypes {
 		provider := provider.NewGomockProvider(mockCtrl)
@@ -27,8 +30,6 @@ func WithTestPusherGoMock(t *testing.T, providerTypes []push.ProviderType, closu
 		t.Helper()
 		closure(NewTestPusherGomock(t, gomockProviders, db), db, gomockProviders)
 	})
-
-	mockCtrl.Finish()
 }
 
 func NewTestPusherGomock(t *testing.T, gomockProviders map[push.ProviderType]*provider.GomockProvider, db *sql.DB) *push.Service {
