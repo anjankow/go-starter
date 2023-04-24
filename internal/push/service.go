@@ -33,6 +33,7 @@ type ProviderSendResponse struct {
 	Err error
 }
 
+//go:generate mockgen -destination=provider/gomock_provider.go -package=provider -mock_names=Provider=GomockProvider allaboutapps.dev/aw/go-starter/internal/push Provider
 type Provider interface {
 	Send(token string, title string, message string) ProviderSendResponse
 	SendMulticast(tokens []string, title, message string) []ProviderSendResponse
