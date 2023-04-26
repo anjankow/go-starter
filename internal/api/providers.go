@@ -20,6 +20,25 @@ import (
 // https://github.com/google/wire/blob/main/docs/guide.md#defining-providers
 ///////////////////////////////////////////////
 
+// newServerWithComponents is used by wire to initialize the server components.
+// Components not listed here won't be handled by wire and should be initialized separately.
+// Components which shouldn't be handled must be labeled `wire:"-"` in Server struct.
+func newServerWithComponents(
+	cfg config.Server,
+	db *sql.DB,
+	mail *mailer.Mailer,
+	pusher *push.Service,
+	i18n *i18n.Service,
+) *Server {
+	return &Server{
+		Config: cfg,
+		DB:     db,
+		Mailer: mail,
+		Push:   pusher,
+		I18n:   i18n,
+	}
+}
+
 func NewDB(cfg config.Server) (*sql.DB, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

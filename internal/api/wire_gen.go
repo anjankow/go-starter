@@ -8,9 +8,6 @@ package api
 
 import (
 	"allaboutapps.dev/aw/go-starter/internal/config"
-	"allaboutapps.dev/aw/go-starter/internal/i18n"
-	"allaboutapps.dev/aw/go-starter/internal/mailer"
-	"allaboutapps.dev/aw/go-starter/internal/push"
 	"database/sql"
 )
 
@@ -64,24 +61,4 @@ func InitNewServerWithDB(cfg config.Server, db *sql.DB) (*Server, error) {
 	}
 	server := newServerWithComponents(cfg, db, mailer, service, i18nService)
 	return server, nil
-}
-
-// wire.go:
-
-// newServerWithComponents is used by wire to initialize the server components.
-// Components not listed here won't be handled by wire and should be initialized separately.
-// Components which shouldn't be handled must be labeled `wire:"-"` in Server struct.
-func newServerWithComponents(
-	cfg config.Server,
-	db *sql.DB,
-	mail *mailer.Mailer,
-	pusher *push.Service, i18n2 *i18n.Service,
-) *Server {
-	return &Server{
-		Config: cfg,
-		DB:     db,
-		Mailer: mail,
-		Push:   pusher,
-		I18n:   i18n2,
-	}
 }
