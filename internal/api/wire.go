@@ -32,6 +32,11 @@ func newServerWithComponents(
 	}
 }
 
+///////////////////////////////////////////////
+// INJECTORS
+// https://github.com/google/wire/blob/main/docs/guide.md#injectors
+///////////////////////////////////////////////
+
 // InitNewServer returns a new Server instance.
 // All the components are initialized via go wire according to the configuration.
 // WARNING! Exceptions are Echo and Router, which are not initialized.
@@ -39,7 +44,7 @@ func newServerWithComponents(
 func InitNewServer(
 	cfg config.Server,
 ) (*Server, error) {
-	wire.Build(newServerWithComponents, InitDB, InitMailer, InitPush, InitI18n)
+	wire.Build(newServerWithComponents, NewDB, NewMailer, NewPush, NewI18n)
 	return new(Server), nil
 }
 
@@ -51,6 +56,6 @@ func InitNewServerWithDB(
 	cfg config.Server,
 	db *sql.DB,
 ) (*Server, error) {
-	wire.Build(newServerWithComponents, InitMailer, InitPush, InitI18n)
+	wire.Build(newServerWithComponents, NewMailer, NewPush, NewI18n)
 	return new(Server), nil
 }

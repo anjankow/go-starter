@@ -15,7 +15,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func InitDB(cfg config.Server) (*sql.DB, error) {
+///////////////////////////////////////////////
+// PROVIDERS
+// https://github.com/google/wire/blob/main/docs/guide.md#defining-providers
+///////////////////////////////////////////////
+
+func NewDB(cfg config.Server) (*sql.DB, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -50,7 +55,7 @@ func newDBConnection(ctx context.Context, cfg config.Server) (*sql.DB, error) {
 	return db, nil
 }
 
-func InitMailer(cfg config.Server) (m *mailer.Mailer, err error) {
+func NewMailer(cfg config.Server) (m *mailer.Mailer, err error) {
 
 	switch config.MailerTransporter(cfg.Mailer.Transporter) {
 	case config.MailerTransporterMock:
@@ -69,7 +74,7 @@ func InitMailer(cfg config.Server) (m *mailer.Mailer, err error) {
 	return m, nil
 }
 
-func InitPush(cfg config.Server, db *sql.DB) (*push.Service, error) {
+func NewPush(cfg config.Server, db *sql.DB) (*push.Service, error) {
 	pusher := push.New(db)
 
 	if cfg.Push.UseFCMProvider {
@@ -93,6 +98,6 @@ func InitPush(cfg config.Server, db *sql.DB) (*push.Service, error) {
 	return pusher, nil
 }
 
-func InitI18n(cfg config.Server) (*i18n.Service, error) {
+func NewI18n(cfg config.Server) (*i18n.Service, error) {
 	return i18n.New(cfg.I18n)
 }

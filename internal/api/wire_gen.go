@@ -25,19 +25,19 @@ import (
 // WARNING! Exceptions are Echo and Router, which are not initialized.
 // After this call make sure that router.Init(s) is invoked.
 func InitNewServer(cfg config.Server) (*Server, error) {
-	db, err := InitDB(cfg)
+	db, err := NewDB(cfg)
 	if err != nil {
 		return nil, err
 	}
-	mailer, err := InitMailer(cfg)
+	mailer, err := NewMailer(cfg)
 	if err != nil {
 		return nil, err
 	}
-	service, err := InitPush(cfg, db)
+	service, err := NewPush(cfg, db)
 	if err != nil {
 		return nil, err
 	}
-	i18nService, err := InitI18n(cfg)
+	i18nService, err := NewI18n(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -50,15 +50,15 @@ func InitNewServer(cfg config.Server) (*Server, error) {
 // WARNING! Exceptions are Echo and Router, which are not initialized.
 // After this call make sure that router.Init(s) is invoked.
 func InitNewServerWithDB(cfg config.Server, db *sql.DB) (*Server, error) {
-	mailer, err := InitMailer(cfg)
+	mailer, err := NewMailer(cfg)
 	if err != nil {
 		return nil, err
 	}
-	service, err := InitPush(cfg, db)
+	service, err := NewPush(cfg, db)
 	if err != nil {
 		return nil, err
 	}
-	i18nService, err := InitI18n(cfg)
+	i18nService, err := NewI18n(cfg)
 	if err != nil {
 		return nil, err
 	}
