@@ -119,11 +119,6 @@ RUN go install github.com/uw-labs/lichen@v0.1.7
 # https://github.com/spf13/cobra-cli/releases
 RUN go install github.com/spf13/cobra-cli@v1.3.0
 
-# wire: code generation tool that connects components using dependency injection
-# TODO: Install from static binary as soon as it becomes available.
-# https://github.com/google/wire/tags
-RUN go install github.com/google/wire/cmd/wire@v0.5.0
-
 # watchexec
 # https://github.com/watchexec/watchexec/releases
 RUN mkdir -p /tmp/watchexec \
