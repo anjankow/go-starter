@@ -119,10 +119,6 @@ RUN go install github.com/uw-labs/lichen@v0.1.7
 # https://github.com/spf13/cobra-cli/releases
 RUN go install github.com/spf13/cobra-cli@v1.3.0
 
-# gomock: mocking framework, included in go.mod; needed here to run mock generation before running the app
-# https://github.com/golang/mock/tags
-RUN go install github.com/golang/mock/mockgen@v1.6.0
-
 # watchexec
 # https://github.com/watchexec/watchexec/releases
 RUN mkdir -p /tmp/watchexec \
