@@ -24,13 +24,24 @@ type Router struct {
 	APIV1Push  *echo.Group
 }
 
+// Server is a central struct keeping all the dependencies.
+// It is initialized with wire, which handles making the new instances of the components
+// in the right order. To add a new component, 3 steps are required:
+// - declaring it in this struct
+// - adding a provider function in providers.go
+// - adding the provider's function name to the arguments of wire.Build() in wire.go
+//
+// Components labeled as `wire:"-"` will be skipped and have to be initialized after the InitNewServer* call.
+// For more information about wire refer to https://pkg.go.dev/github.com/google/wire
 type Server struct {
-	Config config.Server
-	DB     *sql.DB
-
-	// skip for wire: initialized with router.Init(s) function
+	// skip wire:
+	// -> initialized with router.Init(s) function
 	Echo   *echo.Echo `wire:"-"`
 	Router *Router    `wire:"-"`
+
+	// wire:
+	Config config.Server
+	DB     *sql.DB
 
 	Mailer *mailer.Mailer
 	Push   *push.Service
@@ -38,6 +49,8 @@ type Server struct {
 }
 
 // NewServer returns an empty server instance with only configuration assigned.
+// Use it only if you don't need any components to be initialized.
+// Otherwise consider InitNewServer* functions.
 func NewServer(config config.Server) *Server {
 	return &Server{
 		Config: config,
