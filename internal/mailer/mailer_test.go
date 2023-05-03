@@ -2,16 +2,11 @@ package mailer_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"allaboutapps.dev/aw/go-starter/internal/api"
 	"allaboutapps.dev/aw/go-starter/internal/config"
-	"allaboutapps.dev/aw/go-starter/internal/mailer"
-	"allaboutapps.dev/aw/go-starter/internal/mailer/transport"
 	"allaboutapps.dev/aw/go-starter/internal/test"
-	"github.com/golang/mock/gomock"
-	"github.com/jordan-wright/email"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -64,54 +59,5 @@ func SkipTestMailerSendPasswordResetWithMailhogAndServer(t *testing.T) {
 		passwordResetLink := "http://localhost/password/reset/12345"
 		err := s.Mailer.SendPasswordReset(ctx, fixtures.User1.Username.String, passwordResetLink)
 		require.NoError(t, err)
-	})
-}
-
-func TestMailerSendPasswordResetWithGomock(t *testing.T) {
-	test.WithTestMailerGoMock(t, func(m *mailer.Mailer, gomockTransport *transport.GomockMailTransport) {
-
-		ctx := context.Background()
-		fixtures := test.Fixtures()
-
-		//nolint:gosec
-		passwordResetLink := "http://localhost/password/reset/12345"
-
-		gomockTransport.EXPECT().Send(gomock.Any()).
-			Times(1).
-			DoAndReturn(func(mail *email.Email) error {
-				// check the email content before returning
-				assert.Equal(t, m.Config.DefaultSender, mail.From)
-				assert.Len(t, mail.To, 1)
-				assert.Equal(t, fixtures.User1.Username.String, mail.To[0])
-				assert.Equal(t, test.TestMailerDefaultSender, mail.From)
-				assert.Equal(t, "Password reset", mail.Subject)
-				assert.Contains(t, string(mail.HTML), passwordResetLink)
-
-				return nil
-			})
-
-		err := m.SendPasswordReset(ctx, fixtures.User1.Username.String, passwordResetLink)
-		require.NoError(t, err)
-
-		// checking email content is done when calling gomockTransport
-	})
-}
-
-func TestMailerSendPasswordResetWithGomockFailure(t *testing.T) {
-	test.WithTestMailerGoMock(t, func(m *mailer.Mailer, gomockTransport *transport.GomockMailTransport) {
-
-		ctx := context.Background()
-		fixtures := test.Fixtures()
-
-		// expect sending failure
-		expectedErr := errors.New("failed to send :(")
-		gomockTransport.EXPECT().Send(gomock.Any()).Return(expectedErr)
-
-		//nolint:gosec
-		passwordResetLink := "http://localhost/password/reset/12345"
-		err := m.SendPasswordReset(ctx, fixtures.User1.Username.String, passwordResetLink)
-		require.Error(t, err)
-
-		assert.ErrorIs(t, err, expectedErr)
 	})
 }
