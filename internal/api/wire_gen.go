@@ -8,6 +8,7 @@ package api
 
 import (
 	"allaboutapps.dev/aw/go-starter/internal/config"
+	"allaboutapps.dev/aw/go-starter/internal/persistence"
 	"database/sql"
 )
 
@@ -22,7 +23,7 @@ import (
 // WARNING! Exceptions are Echo and Router, which are not initialized.
 // After this call make sure that router.Init(s) is invoked.
 func InitNewServer(cfg config.Server) (*Server, error) {
-	db, err := NewDB(cfg)
+	db, err := persistence.NewDB(cfg)
 	if err != nil {
 		return nil, err
 	}

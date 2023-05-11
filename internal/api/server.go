@@ -58,6 +58,25 @@ func NewServer(config config.Server) *Server {
 	}
 }
 
+// newServerWithComponents is used by wire to initialize the server components.
+// Components not listed here won't be handled by wire and should be initialized separately.
+// Components which shouldn't be handled must be labeled `wire:"-"` in Server struct.
+func newServerWithComponents(
+	cfg config.Server,
+	db *sql.DB,
+	mail *mailer.Mailer,
+	pusher *push.Service,
+	i18n *i18n.Service,
+) *Server {
+	return &Server{
+		Config: cfg,
+		DB:     db,
+		Mailer: mail,
+		Push:   pusher,
+		I18n:   i18n,
+	}
+}
+
 func (s *Server) Ready() bool {
 	if err := util.IsStructInitialized(s); err != nil {
 		log.Debug().Err(err).Msg("Server is not fully initialized")

@@ -1,10 +1,8 @@
 package api
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	"allaboutapps.dev/aw/go-starter/internal/config"
 	"allaboutapps.dev/aw/go-starter/internal/i18n"
@@ -19,60 +17,6 @@ import (
 // PROVIDERS
 // https://github.com/google/wire/blob/main/docs/guide.md#defining-providers
 ///////////////////////////////////////////////
-
-// newServerWithComponents is used by wire to initialize the server components.
-// Components not listed here won't be handled by wire and should be initialized separately.
-// Components which shouldn't be handled must be labeled `wire:"-"` in Server struct.
-func newServerWithComponents(
-	cfg config.Server,
-	db *sql.DB,
-	mail *mailer.Mailer,
-	pusher *push.Service,
-	i18n *i18n.Service,
-) *Server {
-	return &Server{
-		Config: cfg,
-		DB:     db,
-		Mailer: mail,
-		Push:   pusher,
-		I18n:   i18n,
-	}
-}
-
-func NewDB(cfg config.Server) (*sql.DB, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	db, err := newDBConnection(ctx, cfg)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to initialize database: %w", err)
-	}
-
-	return db, nil
-}
-
-func newDBConnection(ctx context.Context, cfg config.Server) (*sql.DB, error) {
-	db, err := sql.Open("postgres", cfg.Database.ConnectionString())
-	if err != nil {
-		return nil, fmt.Errorf("Failed to open DB connection: %w", err)
-	}
-
-	if cfg.Database.MaxOpenConns > 0 {
-		db.SetMaxOpenConns(cfg.Database.MaxOpenConns)
-	}
-	if cfg.Database.MaxIdleConns > 0 {
-		db.SetMaxIdleConns(cfg.Database.MaxIdleConns)
-	}
-	if cfg.Database.ConnMaxLifetime > 0 {
-		db.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
-	}
-
-	if err := db.PingContext(ctx); err != nil {
-		return nil, fmt.Errorf("Failed to ping DB: %w", err)
-	}
-
-	return db, nil
-}
 
 func NewMailer(cfg config.Server) (m *mailer.Mailer, err error) {
 

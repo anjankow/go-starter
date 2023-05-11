@@ -7,6 +7,7 @@ import (
 	"database/sql"
 
 	"allaboutapps.dev/aw/go-starter/internal/config"
+	"allaboutapps.dev/aw/go-starter/internal/persistence"
 	"github.com/google/wire"
 )
 
@@ -22,7 +23,7 @@ import (
 func InitNewServer(
 	cfg config.Server,
 ) (*Server, error) {
-	wire.Build(newServerWithComponents, NewDB, NewMailer, NewPush, NewI18n)
+	wire.Build(newServerWithComponents, persistence.NewDB, NewMailer, NewPush, NewI18n)
 	return new(Server), nil
 }
 
