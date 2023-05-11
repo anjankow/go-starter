@@ -21,7 +21,7 @@ func TestGetReadyReadinessBroken(t *testing.T) {
 	test.WithTestServer(t, func(s *api.Server) {
 
 		// forcefully remove an initialized component to check if ready state works
-		s.Router = nil
+		s.Mailer = nil
 
 		res := test.PerformRequest(t, s, "GET", "/-/ready", nil, nil)
 		require.Equal(t, 521, res.Result().StatusCode)

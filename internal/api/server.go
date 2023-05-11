@@ -9,6 +9,7 @@ import (
 	"allaboutapps.dev/aw/go-starter/internal/i18n"
 	"allaboutapps.dev/aw/go-starter/internal/mailer"
 	"allaboutapps.dev/aw/go-starter/internal/push"
+	"allaboutapps.dev/aw/go-starter/internal/util"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
@@ -58,9 +59,12 @@ func NewServer(config config.Server) *Server {
 }
 
 func (s *Server) Ready() bool {
-	// all the other components must be initialized by wire
-	return s.Echo != nil &&
-		s.Router != nil
+	if err := util.IsStructInitialized(s); err != nil {
+		log.Debug().Err(err).Msg("Server is not fully initialized")
+		return false
+	}
+
+	return true
 }
 
 func (s *Server) Start() error {
