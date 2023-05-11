@@ -51,7 +51,7 @@ go-lint: ##- (opt) Runs golangci-lint.
 
 go-generate: ##- (opt) Go code generation: wire, internal/api/handlers/handlers.go binding
 	gsdev handlers gen
-	cd internal/api && wire
+	wire gen ./...
 
 check-handlers: ##- (opt) Checks if implemented handlers match their spec (path).
 	gsdev handlers check
