@@ -7,14 +7,14 @@ import (
 	"database/sql"
 
 	"allaboutapps.dev/aw/go-starter/internal/config"
+	"allaboutapps.dev/aw/go-starter/internal/i18n"
+	"allaboutapps.dev/aw/go-starter/internal/mailer"
 	"allaboutapps.dev/aw/go-starter/internal/persistence"
 	"github.com/google/wire"
 )
 
-///////////////////////////////////////////////
 // INJECTORS
 // https://github.com/google/wire/blob/main/docs/guide.md#injectors
-///////////////////////////////////////////////
 
 // InitNewServer returns a new Server instance.
 // All the components are initialized via go wire according to the configuration.
@@ -23,7 +23,12 @@ import (
 func InitNewServer(
 	cfg config.Server,
 ) (*Server, error) {
-	wire.Build(newServerWithComponents, persistence.NewDB, NewMailer, NewPush, NewI18n)
+	wire.Build(newServerWithComponents,
+		NewPush,
+		persistence.NewDB,
+		config.GetMailerConfig, mailer.NewWithConfig,
+		config.GetI18nConfig, i18n.New,
+	)
 	return new(Server), nil
 }
 
@@ -35,6 +40,10 @@ func InitNewServerWithDB(
 	cfg config.Server,
 	db *sql.DB,
 ) (*Server, error) {
-	wire.Build(newServerWithComponents, NewMailer, NewPush, NewI18n)
+	wire.Build(newServerWithComponents,
+		NewPush,
+		config.GetMailerConfig, mailer.NewWithConfig,
+		config.GetI18nConfig, i18n.New,
+	)
 	return new(Server), nil
 }

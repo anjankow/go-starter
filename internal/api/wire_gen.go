@@ -8,6 +8,8 @@ package api
 
 import (
 	"allaboutapps.dev/aw/go-starter/internal/config"
+	"allaboutapps.dev/aw/go-starter/internal/i18n"
+	"allaboutapps.dev/aw/go-starter/internal/mailer"
 	"allaboutapps.dev/aw/go-starter/internal/persistence"
 	"database/sql"
 )
@@ -27,7 +29,8 @@ func InitNewServer(cfg config.Server) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	mailer, err := NewMailer(cfg)
+	configMailer := config.GetMailerConfig(cfg)
+	mailerMailer, err := mailer.NewWithConfig(configMailer)
 	if err != nil {
 		return nil, err
 	}
@@ -35,11 +38,12 @@ func InitNewServer(cfg config.Server) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	i18nService, err := NewI18n(cfg)
+	configI18n := config.GetI18nConfig(cfg)
+	i18nService, err := i18n.New(configI18n)
 	if err != nil {
 		return nil, err
 	}
-	server := newServerWithComponents(cfg, db, mailer, service, i18nService)
+	server := newServerWithComponents(cfg, db, mailerMailer, service, i18nService)
 	return server, nil
 }
 
@@ -48,7 +52,8 @@ func InitNewServer(cfg config.Server) (*Server, error) {
 // WARNING! Exceptions are Echo and Router, which are not initialized.
 // After this call make sure that router.Init(s) is invoked.
 func InitNewServerWithDB(cfg config.Server, db *sql.DB) (*Server, error) {
-	mailer, err := NewMailer(cfg)
+	configMailer := config.GetMailerConfig(cfg)
+	mailerMailer, err := mailer.NewWithConfig(configMailer)
 	if err != nil {
 		return nil, err
 	}
@@ -56,10 +61,11 @@ func InitNewServerWithDB(cfg config.Server, db *sql.DB) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	i18nService, err := NewI18n(cfg)
+	configI18n := config.GetI18nConfig(cfg)
+	i18nService, err := i18n.New(configI18n)
 	if err != nil {
 		return nil, err
 	}
-	server := newServerWithComponents(cfg, db, mailer, service, i18nService)
+	server := newServerWithComponents(cfg, db, mailerMailer, service, i18nService)
 	return server, nil
 }
