@@ -3,15 +3,15 @@ server initialization via wire
 
 # Background
 
-As our projects have grown, we've added gradually more and more dependent components. Consequently, having the top level `Server` struct fully initialized became a rather complex task, especially that there was no reliable protection against an accidental usage of a not initialized `Server` instance.
+As our projects have grown, we have gradually added more and more dependent components. Consequently, fully initializing the top-level `Server` struct has become a rather complex task, especially considering the lack of reliable protection against accidental usage of an uninitialized `Server` instance.
 
-To make our life easier, we've decided to integrate the **wire** code generation tool into our project. It resolves the dependency graph for us and initializes the server components always in the right order.
+To simplify our workflow, we made the decision to integrate the **wire** code generation tool into our project. This tool effectively resolves the dependency graph and ensures that the server components are always initialized in the correct order.
 
 > Wire is a code generation tool that automates connecting components using dependency injection.
 
 https://pkg.go.dev/github.com/google/wire.
 
-For this purpose we had to introduce some possibly breaking changes into our code base. We are aware that the adaptation process of the downstream projects might take some effort. But we are convinced that in the long run this effort will definitely pay off.
+To accomplish this, we had to introduce certain changes, which may be potentially breaking. We acknowledge that the downstream projects will require some effort in adapting to these changes. Nevertheless, we strongly believe that the long-term benefits will justify the initial investment.
 
 Please read carefully the following instructions.
 
@@ -33,7 +33,9 @@ func NewPush(cfg config.Server, db *sql.DB) (*push.Service, error) {
 ## REQUIRED ACTION
 Convert all `func (s *Server) Init*` methods into providers conforming to the wire guidelines (still keeping the server methods for now).
 
-You can find example providers in internal/api/providers.go
+If for any reason a provider function can't live in it's dedicated package, you can place it in wire_providers.go.
+
+Please refer to internal/api/wire.go to check currently used wire providers. They are listed as params to the `wire.Build()` function.
 
 # 2. Define injectors
 Injectors are declared in internal/api/wire.go. They instruct wire which providers should be used to satisfy the dependencies of a top level component.
@@ -75,7 +77,7 @@ make init
 
 ### Wire generation:
 ```sh
-cd internal/api && wire
+wire gen ./...
 ```
 or via `make`:
 ```sh
