@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"html/template"
 	"os"
 	"path/filepath"
@@ -24,6 +25,25 @@ type Mailer struct {
 	Config    config.Mailer
 	Transport transport.MailTransporter
 	Templates map[string]*template.Template
+}
+
+func NewWithConfig(cfg config.Mailer) (m *Mailer, err error) {
+
+	switch config.MailerTransporter(cfg.Transporter) {
+	case config.MailerTransporterMock:
+		log.Warn().Msg("Initializing mock mailer")
+		m = New(cfg, transport.NewMock())
+	case config.MailerTransporterSMTP:
+		m = New(cfg, transport.NewSMTP(cfg.SMTP))
+	default:
+		return nil, fmt.Errorf("Unsupported mail transporter: %s", cfg.Transporter)
+	}
+
+	if err := m.ParseTemplates(); err != nil {
+		return nil, fmt.Errorf("Failed to parse templates: %w", err)
+	}
+
+	return m, nil
 }
 
 func New(config config.Mailer, transport transport.MailTransporter) *Mailer {

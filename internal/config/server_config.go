@@ -99,7 +99,6 @@ type Server struct {
 	Auth       AuthServer
 	Management ManagementServer
 	Mailer     Mailer
-	SMTP       transport.SMTPMailTransportConfig
 	Frontend   FrontendServer
 	Logger     LoggerServer
 	Push       PushService
@@ -198,16 +197,17 @@ func DefaultServiceConfigFromEnv() Server {
 			Send:                        util.GetEnvAsBool("SERVER_MAILER_SEND", true),
 			WebTemplatesEmailBaseDirAbs: util.GetEnv("SERVER_MAILER_WEB_TEMPLATES_EMAIL_BASE_DIR_ABS", filepath.Join(util.GetProjectRootDir(), "/web/templates/email")), // /app/web/templates/email
 			Transporter:                 util.GetEnvEnum("SERVER_MAILER_TRANSPORTER", MailerTransporterMock.String(), []string{MailerTransporterSMTP.String(), MailerTransporterMock.String()}),
+			SMTP: transport.SMTPMailTransportConfig{
+				Host:      util.GetEnv("SERVER_SMTP_HOST", "mailhog"),
+				Port:      util.GetEnvAsInt("SERVER_SMTP_PORT", 1025),
+				Username:  util.GetEnv("SERVER_SMTP_USERNAME", ""),
+				Password:  util.GetEnv("SERVER_SMTP_PASSWORD", ""),
+				AuthType:  transport.SMTPAuthTypeFromString(util.GetEnv("SERVER_SMTP_AUTH_TYPE", transport.SMTPAuthTypeNone.String())),
+				UseTLS:    util.GetEnvAsBool("SERVER_SMTP_USE_TLS", false),
+				TLSConfig: nil,
+			},
 		},
-		SMTP: transport.SMTPMailTransportConfig{
-			Host:      util.GetEnv("SERVER_SMTP_HOST", "mailhog"),
-			Port:      util.GetEnvAsInt("SERVER_SMTP_PORT", 1025),
-			Username:  util.GetEnv("SERVER_SMTP_USERNAME", ""),
-			Password:  util.GetEnv("SERVER_SMTP_PASSWORD", ""),
-			AuthType:  transport.SMTPAuthTypeFromString(util.GetEnv("SERVER_SMTP_AUTH_TYPE", transport.SMTPAuthTypeNone.String())),
-			UseTLS:    util.GetEnvAsBool("SERVER_SMTP_USE_TLS", false),
-			TLSConfig: nil,
-		},
+
 		Frontend: FrontendServer{
 			BaseURL:               util.GetEnv("SERVER_FRONTEND_BASE_URL", "http://localhost:3000"),
 			PasswordResetEndpoint: util.GetEnv("SERVER_FRONTEND_PASSWORD_RESET_ENDPOINT", "/set-new-password"),
@@ -238,4 +238,14 @@ func DefaultServiceConfigFromEnv() Server {
 		},
 	}
 
+}
+
+// GetMailerConfig for wire usage
+func GetMailerConfig(cfg Server) Mailer {
+	return cfg.Mailer
+}
+
+// GetI18nConfig for wire usage
+func GetI18nConfig(cfg Server) I18n {
+	return cfg.I18n
 }

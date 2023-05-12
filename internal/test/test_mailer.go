@@ -21,7 +21,7 @@ func NewTestMailer(t *testing.T) *mailer.Mailer {
 func NewSMTPMailerFromDefaultEnv(t *testing.T) *mailer.Mailer {
 	t.Helper()
 
-	config := config.DefaultServiceConfigFromEnv().SMTP
+	config := config.DefaultServiceConfigFromEnv().Mailer.SMTP
 	return newMailerWithTransporter(t, transport.NewSMTP(config))
 }
 
