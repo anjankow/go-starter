@@ -34,8 +34,13 @@ type ProviderSendResponse struct {
 }
 
 type Provider interface {
-	Send(token string, title string, message string) ProviderSendResponse
-	SendMulticast(tokens []string, title, message string) []ProviderSendResponse
+	Send(token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) ProviderSendResponse
+	// DEPRECATED: SendMulticast
+	// Allows to send same notification to multiple receivers.
+	//
+	// This interface function is deprecated and might be removed with future releases.
+	// Please use sendMulticastWithProvider instead defined in push package.
+	SendMulticast(tokens []string, title string, message string, data map[string]string, silent bool, collapseKey ...string) []ProviderSendResponse
 	GetProviderType() ProviderType
 }
 
@@ -58,7 +63,7 @@ func (s *Service) GetProviderCount() int {
 	return len(s.provider)
 }
 
-func (s *Service) SendToUser(ctx context.Context, user *models.User, title string, message string) error {
+func (s *Service) SendToUser(ctx context.Context, user *models.User, title string, message string, data map[string]string, silent bool, collapseKey ...string) error {
 	if s.GetProviderCount() < 1 {
 		return errors.New("No provider found")
 	}
@@ -76,7 +81,7 @@ func (s *Service) SendToUser(ctx context.Context, user *models.User, title strin
 			tokens = append(tokens, token.Token)
 		}
 
-		responseSlice := p.SendMulticast(tokens, title, message)
+		responseSlice := s.sendMulticastWithProvider(p, tokens, title, message, data, silent, collapseKey...)
 		tokenToDelete := make([]string, 0)
 		for _, res := range responseSlice {
 			if res.Err != nil && res.Valid {
@@ -96,4 +101,15 @@ func (s *Service) SendToUser(ctx context.Context, user *models.User, title strin
 	}
 
 	return nil
+}
+
+// sendMulticastWithProvider allows to send same notification to multiple receivers via one provider.
+func (s *Service) sendMulticastWithProvider(p Provider, tokens []string, title string, message string, data map[string]string, silent bool, collapseKey ...string) []ProviderSendResponse {
+	responseSlice := make([]ProviderSendResponse, 0)
+
+	for _, token := range tokens {
+		responseSlice = append(responseSlice, p.Send(token, title, message, data, silent, collapseKey...))
+	}
+
+	return responseSlice
 }

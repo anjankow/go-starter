@@ -39,7 +39,7 @@ func (p *FCM) GetProviderType() push.ProviderType {
 	return push.ProviderTypeFCM
 }
 
-func (p *FCM) Send(token string, title string, message string) push.ProviderSendResponse {
+func (p *FCM) Send(token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) push.ProviderSendResponse {
 	// https: //godoc.org/google.golang.org/api/fcm/v1#SendMessageRequest
 	// https://firebase.google.com/docs/cloud-messaging/send-message#rest
 	messageRequest := &fcm.SendMessageRequest{
@@ -71,6 +71,6 @@ func (p *FCM) Send(token string, title string, message string) push.ProviderSend
 	}
 }
 
-func (p *FCM) SendMulticast(tokens []string, title, message string) []push.ProviderSendResponse {
-	return sendMulticastWithProvider(p, tokens, title, message)
+func (p *FCM) SendMulticast(tokens []string, title string, message string, data map[string]string, silent bool, collapseKey ...string) []push.ProviderSendResponse {
+	return sendMulticastWithProvider(p, tokens, title, message, data, silent, collapseKey...)
 }

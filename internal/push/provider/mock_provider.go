@@ -21,7 +21,7 @@ func (p *Mock) GetProviderType() push.ProviderType {
 	return p.Type
 }
 
-func (p *Mock) Send(token string, title string, message string) push.ProviderSendResponse {
+func (p *Mock) Send(token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) push.ProviderSendResponse {
 	valid := true
 	var err error
 	if len(token) < 40 {
@@ -42,6 +42,6 @@ func (p *Mock) Send(token string, title string, message string) push.ProviderSen
 	}
 }
 
-func (p *Mock) SendMulticast(tokens []string, title, message string) []push.ProviderSendResponse {
-	return sendMulticastWithProvider(p, tokens, title, message)
+func (p *Mock) SendMulticast(tokens []string, title string, message string, data map[string]string, silent bool, collapseKey ...string) []push.ProviderSendResponse {
+	return sendMulticastWithProvider(p, tokens, title, message, data, silent, collapseKey...)
 }

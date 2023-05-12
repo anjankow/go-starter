@@ -21,7 +21,7 @@ func TestSendMessageSuccess(t *testing.T) {
 
 		user1 := fixtures.User1
 
-		err := p.SendToUser(ctx, user1, "Hello", "World")
+		err := p.SendToUser(ctx, user1, "Hello", "World", make(map[string]string), false)
 		assert.NoError(t, err)
 
 		tokenCount, err2 := user1.PushTokens().Count(ctx, db)
@@ -38,7 +38,7 @@ func TestSendMessageSuccessWithGenericError(t *testing.T) {
 		user1 := fixtures.User1
 
 		// provoke error from mock provider
-		err := p.SendToUser(ctx, user1, "other error", "World")
+		err := p.SendToUser(ctx, user1, "other error", "World", make(map[string]string), false)
 		assert.NoError(t, err)
 
 		tokenCount, err2 := user1.PushTokens().Count(ctx, db)
@@ -66,7 +66,7 @@ func TestSendMessageWithInvalidToken(t *testing.T) {
 		require.NoError(t, err2)
 		require.Equal(t, int64(3), tokenCount)
 
-		err = p.SendToUser(ctx, user1, "Hello", "World")
+		err = p.SendToUser(ctx, user1, "Hello", "World", make(map[string]string), false)
 		assert.NoError(t, err)
 
 		tokenCount, err2 = user1.PushTokens().Count(ctx, db)
@@ -86,7 +86,7 @@ func TestSendMessageWithNoProvider(t *testing.T) {
 
 		user1 := fixtures.User1
 
-		err := p.SendToUser(ctx, user1, "Hello", "World")
+		err := p.SendToUser(ctx, user1, "Hello", "World", make(map[string]string), false)
 		assert.Error(t, err)
 
 		tokenCount, err2 := user1.PushTokens().Count(ctx, db)
@@ -109,7 +109,7 @@ func TestSendMessageWithMultipleProvider(t *testing.T) {
 		p.RegisterProvider(mockProviderFCM)
 		user1 := fixtures.User1
 
-		err := p.SendToUser(ctx, user1, "Hello", "World")
+		err := p.SendToUser(ctx, user1, "Hello", "World", make(map[string]string), false)
 		assert.NoError(t, err)
 
 		tokenCount, err2 := user1.PushTokens().Count(ctx, db)
