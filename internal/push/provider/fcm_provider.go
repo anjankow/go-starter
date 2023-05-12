@@ -42,18 +42,28 @@ func (p *FCM) GetProviderType() push.ProviderType {
 func (p *FCM) Send(token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) push.ProviderSendResponse {
 	// https: //godoc.org/google.golang.org/api/fcm/v1#SendMessageRequest
 	// https://firebase.google.com/docs/cloud-messaging/send-message#rest
+	data["title"] = title
+	data["message"] = message
+
 	messageRequest := &fcm.SendMessageRequest{
 		ValidateOnly: p.Config.ValidateOnly,
 		Message: &fcm.Message{
 			Token: token,
-			Notification: &fcm.Notification{
-				Title: title,
-				Body:  message,
-			},
+			Data:  data,
 		},
 	}
 
+	if silent {
+		messageRequest.Message.Android = &fcm.AndroidConfig{
+			Priority: "NORMAL",
+		}
+		if len(collapseKey) == 1 {
+			messageRequest.Message.Android.CollapseKey = collapseKey[0]
+		}
+	}
+
 	_, err := p.service.Projects.Messages.Send("projects/"+p.Config.ProjectID, messageRequest).Do()
+
 	valid := true
 	if err != nil {
 
