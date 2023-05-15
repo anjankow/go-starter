@@ -24,6 +24,7 @@ type Router struct {
 	Root       *echo.Group
 	Management *echo.Group
 	APIV1Auth  *echo.Group
+	APIV1QA    *echo.Group
 	APIV1Push  *echo.Group
 }
 
