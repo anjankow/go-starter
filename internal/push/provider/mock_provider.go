@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"errors"
 
 	"allaboutapps.dev/aw/go-starter/internal/push"
@@ -22,6 +23,11 @@ func (p *Mock) GetProviderType() push.ProviderType {
 }
 
 func (p *Mock) Send(token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) push.ProviderSendResponse {
+	ctx := context.Background()
+	return p.SendWithContext(ctx, token, title, message, data, silent, collapseKey...)
+}
+
+func (p *Mock) SendWithContext(ctx context.Context, token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) push.ProviderSendResponse {
 	valid := true
 	var err error
 	if len(token) < 40 {

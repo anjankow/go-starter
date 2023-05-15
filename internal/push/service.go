@@ -35,13 +35,15 @@ type ProviderSendResponse struct {
 
 type Provider interface {
 	Send(token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) ProviderSendResponse
+	SendWithContext(ctx context.Context, token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) ProviderSendResponse
+	GetProviderType() ProviderType
+
 	// DEPRECATED: SendMulticast
 	// Allows to send same notification to multiple receivers.
 	//
 	// This interface function is deprecated and might be removed with future releases.
 	// Please use sendMulticastWithProvider instead defined in push package.
 	SendMulticast(tokens []string, title string, message string, data map[string]string, silent bool, collapseKey ...string) []ProviderSendResponse
-	GetProviderType() ProviderType
 }
 
 func New(db *sql.DB) *Service {
