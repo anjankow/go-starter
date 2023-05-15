@@ -225,10 +225,11 @@ func DefaultServiceConfigFromEnv() Server {
 			PrettyPrintConsole: util.GetEnvAsBool("SERVER_LOGGER_PRETTY_PRINT_CONSOLE", false),
 		},
 		Push: PushService{
-			UseAPNSProvider:  util.GetEnvAsBool("SERVER_PUSH_USE_APNS", false),
-			UseFCMProvider:   util.GetEnvAsBool("SERVER_PUSH_USE_FCM", false),
-			UseMockProvider:  util.GetEnvAsBool("SERVER_PUSH_USE_MOCK", true),
-			PushPayloadDebug: util.GetEnvAsBool("SERVER_PUSH_PAYLOAD_DEBUG", false),
+			UseAPNSProvider:    util.GetEnvAsBool("SERVER_PUSH_USE_APNS", false),
+			UseFCMProvider:     util.GetEnvAsBool("SERVER_PUSH_USE_FCM", false),
+			UseMockProvider:    util.GetEnvAsBool("SERVER_PUSH_USE_MOCK", true),
+			PushPayloadDebug:   util.GetEnvAsBool("SERVER_PUSH_PAYLOAD_DEBUG", false),
+			EnableTestEndpoint: util.GetEnvAsBool("SERVER_PUSH_ENABLE_TEST_ENDPOINT", false),
 		},
 		APNSConfig: provider.APNSConfiguration{
 			AuthKeyPath: util.GetEnv("SERVER_PUSH_APNS_AUTH_KEY_PATH", ""),

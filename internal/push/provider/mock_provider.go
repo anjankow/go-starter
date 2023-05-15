@@ -27,7 +27,7 @@ func (p *Mock) Send(token string, title string, message string, data map[string]
 	return p.SendWithContext(ctx, token, title, message, data, silent, collapseKey...)
 }
 
-func (p *Mock) SendWithContext(ctx context.Context, token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) push.ProviderSendResponse {
+func (p *Mock) SendWithContext(ctx context.Context, token string, title string, message string, _ map[string]string, _ bool, _ ...string) push.ProviderSendResponse {
 	valid := true
 	var err error
 	if len(token) < 40 {

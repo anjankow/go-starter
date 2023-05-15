@@ -73,7 +73,7 @@ func (p *FCM) SendWithContext(ctx context.Context, token string, title string, m
 
 	res, err := p.service.Projects.Messages.Send("projects/"+p.Config.ProjectID, messageRequest).Context(ctx).Do()
 	if p.Config.DebugPayload {
-		log.Debug().Str("token", token).Interface("message", messageRequest.Message).Msg("FCM notification")
+		log.Debug().Str("token", token).Interface("notification", messageRequest.Message).Msg("FCM notification")
 		log.Debug().Str("token", token).Interface("response", res).Msg("FCM response")
 	}
 
