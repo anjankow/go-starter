@@ -1,6 +1,8 @@
 package config
 
 type PushService struct {
-	UseFCMProvider  bool
-	UseMockProvider bool
+	UseFCMProvider   bool
+	UseMockProvider  bool
+	UseAPNSProvider  bool
+	PushPayloadDebug bool
 }

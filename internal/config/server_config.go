@@ -104,6 +104,7 @@ type Server struct {
 	Logger     LoggerServer
 	Push       PushService
 	FCMConfig  provider.FCMConfig
+	APNSConfig provider.APNSConfiguration
 	I18n       I18n
 }
 
@@ -127,7 +128,7 @@ func DefaultServiceConfigFromEnv() Server {
 		DotEnvTryLoad(filepath.Join(util.GetProjectRootDir(), ".env.local"), os.Setenv)
 	}
 
-	return Server{
+	cfg := Server{
 		Database: Database{
 			Host:     util.GetEnv("PGHOST", "postgres"),
 			Port:     util.GetEnvAsInt("PGPORT", 5432),
@@ -224,8 +225,14 @@ func DefaultServiceConfigFromEnv() Server {
 			PrettyPrintConsole: util.GetEnvAsBool("SERVER_LOGGER_PRETTY_PRINT_CONSOLE", false),
 		},
 		Push: PushService{
-			UseFCMProvider:  util.GetEnvAsBool("SERVER_PUSH_USE_FCM", false),
-			UseMockProvider: util.GetEnvAsBool("SERVER_PUSH_USE_MOCK", true),
+			UseAPNSProvider:  util.GetEnvAsBool("SERVER_PUSH_USE_APNS", false),
+			UseFCMProvider:   util.GetEnvAsBool("SERVER_PUSH_USE_FCM", false),
+			UseMockProvider:  util.GetEnvAsBool("SERVER_PUSH_USE_MOCK", true),
+			PushPayloadDebug: util.GetEnvAsBool("SERVER_PUSH_PAYLOAD_DEBUG", false),
+		},
+		APNSConfig: provider.APNSConfiguration{
+			AuthKeyPath: util.GetEnv("SERVER_PUSH_APNS_AUTH_KEY_PATH", ""),
+			Topic:       util.GetEnv("SERVER_PUSH_APNS_TOPIC", "no-app-id-set"),
 		},
 		FCMConfig: provider.FCMConfig{
 			GoogleApplicationCredentials: util.GetEnv("GOOGLE_APPLICATION_CREDENTIALS", ""),
@@ -237,5 +244,12 @@ func DefaultServiceConfigFromEnv() Server {
 			BundleDirAbs:    util.GetEnv("SERVER_I18N_BUNDLE_DIR_ABS", filepath.Join(util.GetProjectRootDir(), "/web/i18n")), // /app/web/i18n
 		},
 	}
+
+	if cfg.Push.PushPayloadDebug {
+		cfg.FCMConfig.DebugPayload = true
+		cfg.APNSConfig.DebugPayload = true
+	}
+
+	return cfg
 
 }
