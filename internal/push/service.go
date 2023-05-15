@@ -83,7 +83,7 @@ func (s *Service) SendToUser(ctx context.Context, user *models.User, title strin
 			tokens = append(tokens, token.Token)
 		}
 
-		responseSlice := s.sendMulticastWithProvider(p, tokens, title, message, data, silent, collapseKey...)
+		responseSlice := s.sendMulticastWithProvider(ctx, p, tokens, title, message, data, silent, collapseKey...)
 		tokenToDelete := make([]string, 0)
 		for _, res := range responseSlice {
 			if res.Err != nil && res.Valid {
@@ -106,11 +106,11 @@ func (s *Service) SendToUser(ctx context.Context, user *models.User, title strin
 }
 
 // sendMulticastWithProvider allows to send same notification to multiple receivers via one provider.
-func (s *Service) sendMulticastWithProvider(p Provider, tokens []string, title string, message string, data map[string]string, silent bool, collapseKey ...string) []ProviderSendResponse {
+func (s *Service) sendMulticastWithProvider(ctx context.Context, p Provider, tokens []string, title string, message string, data map[string]string, silent bool, collapseKey ...string) []ProviderSendResponse {
 	responseSlice := make([]ProviderSendResponse, 0)
 
 	for _, token := range tokens {
-		responseSlice = append(responseSlice, p.Send(token, title, message, data, silent, collapseKey...))
+		responseSlice = append(responseSlice, p.SendWithContext(ctx, token, title, message, data, silent, collapseKey...))
 	}
 
 	return responseSlice
