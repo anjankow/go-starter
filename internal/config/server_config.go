@@ -232,15 +232,17 @@ func DefaultServiceConfigFromEnv() Server {
 			EnableTestEndpoint: util.GetEnvAsBool("SERVER_PUSH_ENABLE_TEST_ENDPOINT", false),
 		},
 		APNSConfig: provider.APNSConfiguration{
-			AuthKeyPath: util.GetEnv("SERVER_PUSH_APNS_AUTH_KEY_PATH", ""),
-			TeamID:      util.GetEnv("SERVER_PUSH_APNS_TEAM_ID", "no-team-id"),
-			KeyID:       util.GetEnv("SERVER_PUSH_APNS_KEY_ID", "no-key-id"),
-			Topic:       util.GetEnv("SERVER_PUSH_APNS_TOPIC", "no-app-id-set"),
+			AuthKeyPath:  util.GetEnv("SERVER_PUSH_APNS_AUTH_KEY_PATH", ""),
+			TeamID:       util.GetEnv("SERVER_PUSH_APNS_TEAM_ID", "no-team-id"),
+			KeyID:        util.GetEnv("SERVER_PUSH_APNS_KEY_ID", "no-key-id"),
+			Topic:        util.GetEnv("SERVER_PUSH_APNS_TOPIC", "no-app-id-set"),
+			DebugPayload: util.GetEnvAsBool("SERVER_PUSH_APNS_PAYLOAD_DEBUG", false),
 		},
 		FCMConfig: provider.FCMConfig{
 			GoogleApplicationCredentials: util.GetEnv("GOOGLE_APPLICATION_CREDENTIALS", ""),
 			ProjectID:                    util.GetEnv("SERVER_FCM_PROJECT_ID", "no-fcm-project-id-set"),
 			ValidateOnly:                 util.GetEnvAsBool("SERVER_FCM_VALIDATE_ONLY", true),
+			DebugPayload:                 util.GetEnvAsBool("SERVER_PUSH_APNS_PAYLOAD_DEBUG", false),
 		},
 		I18n: I18n{
 			DefaultLanguage: util.GetEnvAsLanguageTag("SERVER_I18N_DEFAULT_LANGUAGE", language.English),

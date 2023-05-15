@@ -22,7 +22,6 @@ definitions:
         example: 495179de-b771-48f0-aab2-8d23701b0f02
         x-nullable: true
       provider:
-        description: Identifier of the provider the token is for (eg. "fcm", "apn"). Currently only "fcm" is supported.
+        description: Identifier of the provider the token is for.
         type: string
-        maxLength: 500
-        example: fcm
+        enum: [fcm, apn]

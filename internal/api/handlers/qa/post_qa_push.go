@@ -36,6 +36,10 @@ func postQAPushHandler(s *api.Server) echo.HandlerFunc {
 			body.Message = swag.String("World")
 		}
 
+		if body.Data == nil {
+			body.Data = make(map[string]string)
+		}
+
 		err := s.Push.SendToUser(ctx, user, swag.StringValue(body.Title), swag.StringValue(body.Message), body.Data, false)
 		if err != nil {
 			log.Debug().Err(err).Msg("Error while sending push to user.")

@@ -10,7 +10,7 @@ paths:
       description: |-
         Adds a push token for the given provider to the current user.
         If the oldToken is present it will be deleted.
-        Currently only the provider 'fcm' is supported.
+        Currently supported providers are given in the payload field `provider`.
       tags:
         - push
       summary: Adds a push token to the user

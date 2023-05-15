@@ -7,6 +7,7 @@ package types
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -30,10 +31,9 @@ type PostUpdatePushTokenPayload struct {
 	// Max Length: 500
 	OldToken *string `json:"oldToken,omitempty"`
 
-	// Identifier of the provider the token is for (eg. "fcm", "apn"). Currently only "fcm" is supported.
-	// Example: fcm
+	// Identifier of the provider the token is for.
 	// Required: true
-	// Max Length: 500
+	// Enum: [fcm apn]
 	Provider *string `json:"provider"`
 }
 
@@ -84,13 +84,43 @@ func (m *PostUpdatePushTokenPayload) validateOldToken(formats strfmt.Registry) e
 	return nil
 }
 
+var postUpdatePushTokenPayloadTypeProviderPropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["fcm","apn"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		postUpdatePushTokenPayloadTypeProviderPropEnum = append(postUpdatePushTokenPayloadTypeProviderPropEnum, v)
+	}
+}
+
+const (
+
+	// PostUpdatePushTokenPayloadProviderFcm captures enum value "fcm"
+	PostUpdatePushTokenPayloadProviderFcm string = "fcm"
+
+	// PostUpdatePushTokenPayloadProviderApn captures enum value "apn"
+	PostUpdatePushTokenPayloadProviderApn string = "apn"
+)
+
+// prop value enum
+func (m *PostUpdatePushTokenPayload) validateProviderEnum(path, location string, value string) error {
+	if err := validate.EnumCase(path, location, value, postUpdatePushTokenPayloadTypeProviderPropEnum, true); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (m *PostUpdatePushTokenPayload) validateProvider(formats strfmt.Registry) error {
 
 	if err := validate.Required("provider", "body", m.Provider); err != nil {
 		return err
 	}
 
-	if err := validate.MaxLength("provider", "body", *m.Provider, 500); err != nil {
+	// value enum
+	if err := m.validateProviderEnum("provider", "body", *m.Provider); err != nil {
 		return err
 	}
 

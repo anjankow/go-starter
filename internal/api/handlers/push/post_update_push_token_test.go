@@ -16,13 +16,48 @@ import (
 )
 
 func TestPostUpdatePushTokenSuccess(t *testing.T) {
+	tests := []string{"fcm", "apn"}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt, func(t *testing.T) {
+
+			test.WithTestServer(t, func(s *api.Server) {
+				ctx := context.Background()
+				fixtures := test.Fixtures()
+
+				//nolint:gosec
+				testToken := "869f6deb-73e6-4691-9d40-2a2a794006cf"
+				testProvider := tt
+
+				payload := test.GenericPayload{
+					"newToken": testToken,
+					"provider": testProvider,
+				}
+
+				res := test.PerformRequest(t, s, "PUT", "/api/v1/push/token", payload, test.HeadersWithAuth(t, fixtures.User1AccessToken1.Token))
+
+				assert.Equal(t, http.StatusOK, res.Result().StatusCode)
+
+				newToken, err := models.PushTokens(models.PushTokenWhere.Token.EQ(testToken)).One(ctx, s.DB)
+				require.NoError(t, err)
+				assert.NotEmpty(t, newToken.ID)
+				assert.Equal(t, testToken, newToken.Token)
+				assert.Equal(t, testProvider, newToken.Provider)
+				assert.Equal(t, fixtures.User1.ID, newToken.UserID)
+			})
+		})
+	}
+}
+
+func TestPostUpdatePushTokenNotSupportedProvider(t *testing.T) {
+
 	test.WithTestServer(t, func(s *api.Server) {
-		ctx := context.Background()
 		fixtures := test.Fixtures()
 
 		//nolint:gosec
 		testToken := "869f6deb-73e6-4691-9d40-2a2a794006cf"
-		testProvider := "fcm"
+		testProvider := "not supported"
 
 		payload := test.GenericPayload{
 			"newToken": testToken,
@@ -31,14 +66,7 @@ func TestPostUpdatePushTokenSuccess(t *testing.T) {
 
 		res := test.PerformRequest(t, s, "PUT", "/api/v1/push/token", payload, test.HeadersWithAuth(t, fixtures.User1AccessToken1.Token))
 
-		assert.Equal(t, http.StatusOK, res.Result().StatusCode)
-
-		newToken, err := models.PushTokens(models.PushTokenWhere.Token.EQ(testToken)).One(ctx, s.DB)
-		require.NoError(t, err)
-		assert.NotEmpty(t, newToken.ID)
-		assert.Equal(t, testToken, newToken.Token)
-		assert.Equal(t, testProvider, newToken.Provider)
-		assert.Equal(t, fixtures.User1.ID, newToken.UserID)
+		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode)
 	})
 }
 
