@@ -17,8 +17,11 @@ type APNS struct {
 }
 
 type APNSConfiguration struct {
-	AuthKeyPath  string
-	Topic        string
+	AuthKeyPath string // An authentication token signing key: https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/establishing_a_token-based_connection_to_apns#2943371
+	Topic       string // The topic for the notification. In general, the topic is your app’s bundle ID/app ID.
+	TeamID      string // The 10-character Team ID you use for developing your company’s apps. Obtain this value from your developer account.
+	KeyID       string // A 10-character string with the Key ID: https://developer.apple.com/help/account/manage-keys/get-a-key-identifier
+
 	DebugPayload bool
 }
 
@@ -29,8 +32,11 @@ func NewAPNS(cfg APNSConfiguration) (*APNS, error) {
 		return nil, fmt.Errorf("Failed to get client auth key from file: %w", err)
 	}
 
+	// https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/establishing_a_token-based_connection_to_apns
 	token := &token.Token{
 		AuthKey: authKey,
+		TeamID:  cfg.TeamID,
+		KeyID:   cfg.KeyID,
 	}
 
 	client := apns2.NewTokenClient(token).Production()
@@ -49,6 +55,7 @@ func (a *APNS) Send(token string, title string, message string, data map[string]
 func (a *APNS) SendWithContext(ctx context.Context, token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) push.ProviderSendResponse {
 	log := util.LogFromContext(ctx)
 
+	// https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/sending_notification_requests_to_apns
 	notification := &apns2.Notification{
 		DeviceToken: token,
 	}

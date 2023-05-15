@@ -232,6 +232,8 @@ func DefaultServiceConfigFromEnv() Server {
 		},
 		APNSConfig: provider.APNSConfiguration{
 			AuthKeyPath: util.GetEnv("SERVER_PUSH_APNS_AUTH_KEY_PATH", ""),
+			TeamID:      util.GetEnv("SERVER_PUSH_APNS_TEAM_ID", "no-team-id"),
+			KeyID:       util.GetEnv("SERVER_PUSH_APNS_KEY_ID", "no-key-id"),
 			Topic:       util.GetEnv("SERVER_PUSH_APNS_TOPIC", "no-app-id-set"),
 		},
 		FCMConfig: provider.FCMConfig{

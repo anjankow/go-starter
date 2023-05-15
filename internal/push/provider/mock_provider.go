@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"allaboutapps.dev/aw/go-starter/internal/push"
-	"github.com/rs/zerolog/log"
+	"allaboutapps.dev/aw/go-starter/internal/util"
 )
 
 type Mock struct {
@@ -39,7 +39,7 @@ func (p *Mock) SendWithContext(ctx context.Context, token string, title string, 
 		err = errors.New("other error")
 	}
 
-	log.Info().Str("token", token).Str("title", title).Str("message", message).Msg("Mock Push Notification")
+	util.LogFromContext(ctx).Info().Str("token", token).Str("title", title).Str("message", message).Msg("Mock Push Notification")
 
 	return push.ProviderSendResponse{
 		Token: token,
