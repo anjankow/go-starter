@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"allaboutapps.dev/aw/go-starter/internal/push"
+	"allaboutapps.dev/aw/go-starter/internal/util"
 	"google.golang.org/api/fcm/v1"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/option"
@@ -20,6 +21,7 @@ type FCMConfig struct {
 	GoogleApplicationCredentials string `json:"-"` // sensitive
 	ProjectID                    string
 	ValidateOnly                 bool
+	DebugPayload                 bool
 }
 
 func NewFCM(config FCMConfig, opts ...option.ClientOption) (*FCM, error) {
@@ -40,6 +42,13 @@ func (p *FCM) GetProviderType() push.ProviderType {
 }
 
 func (p *FCM) Send(token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) push.ProviderSendResponse {
+	ctx := context.Background()
+	return p.SendWithContext(ctx, token, title, message, data, silent, collapseKey...)
+}
+
+func (p *FCM) SendWithContext(ctx context.Context, token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) push.ProviderSendResponse {
+	log := util.LogFromContext(ctx)
+
 	// https: //godoc.org/google.golang.org/api/fcm/v1#SendMessageRequest
 	// https://firebase.google.com/docs/cloud-messaging/send-message#rest
 	data["title"] = title
@@ -62,7 +71,11 @@ func (p *FCM) Send(token string, title string, message string, data map[string]s
 		}
 	}
 
-	_, err := p.service.Projects.Messages.Send("projects/"+p.Config.ProjectID, messageRequest).Do()
+	res, err := p.service.Projects.Messages.Send("projects/"+p.Config.ProjectID, messageRequest).Do()
+	if p.Config.DebugPayload {
+		log.Debug().Str("token", token).Interface("message", messageRequest.Message).Msg("FCM notification")
+		log.Debug().Str("token", token).Interface("response", res).Msg("FCM response")
+	}
 
 	valid := true
 	if err != nil {
