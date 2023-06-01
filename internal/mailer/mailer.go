@@ -27,14 +27,21 @@ type Mailer struct {
 	Templates map[string]*template.Template
 }
 
-func NewWithConfig(cfg config.Mailer) (m *Mailer, err error) {
+func New(config config.Mailer, transport transport.MailTransporter) *Mailer {
+	return &Mailer{
+		Config:    config,
+		Transport: transport,
+		Templates: map[string]*template.Template{},
+	}
+}
+func NewWithConfig(cfg config.Mailer, smtpConfig transport.SMTPMailTransportConfig) (m *Mailer, err error) {
 
 	switch config.MailerTransporter(cfg.Transporter) {
 	case config.MailerTransporterMock:
 		log.Warn().Msg("Initializing mock mailer")
 		m = New(cfg, transport.NewMock())
 	case config.MailerTransporterSMTP:
-		m = New(cfg, transport.NewSMTP(cfg.SMTP))
+		m = New(cfg, transport.NewSMTP(smtpConfig))
 	default:
 		return nil, fmt.Errorf("Unsupported mail transporter: %s", cfg.Transporter)
 	}
@@ -44,14 +51,6 @@ func NewWithConfig(cfg config.Mailer) (m *Mailer, err error) {
 	}
 
 	return m, nil
-}
-
-func New(config config.Mailer, transport transport.MailTransporter) *Mailer {
-	return &Mailer{
-		Config:    config,
-		Transport: transport,
-		Templates: map[string]*template.Template{},
-	}
 }
 
 func (m *Mailer) ParseTemplates() error {

@@ -26,7 +26,7 @@ func InitNewServer(
 	wire.Build(newServerWithComponents,
 		NewPush,
 		persistence.NewDB,
-		config.GetMailerConfig, mailer.NewWithConfig,
+		config.GetMailerConfig, config.GetSMTPConfig, mailer.NewWithConfig,
 		config.GetI18nConfig, i18n.New,
 	)
 	return new(Server), nil
@@ -42,7 +42,7 @@ func InitNewServerWithDB(
 ) (*Server, error) {
 	wire.Build(newServerWithComponents,
 		NewPush,
-		config.GetMailerConfig, mailer.NewWithConfig,
+		config.GetMailerConfig, config.GetSMTPConfig, mailer.NewWithConfig,
 		config.GetI18nConfig, i18n.New,
 	)
 	return new(Server), nil

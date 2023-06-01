@@ -30,7 +30,8 @@ func InitNewServer(cfg config.Server) (*Server, error) {
 		return nil, err
 	}
 	configMailer := config.GetMailerConfig(cfg)
-	mailerMailer, err := mailer.NewWithConfig(configMailer)
+	smtpMailTransportConfig := config.GetSMTPConfig(cfg)
+	mailerMailer, err := mailer.NewWithConfig(configMailer, smtpMailTransportConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +54,8 @@ func InitNewServer(cfg config.Server) (*Server, error) {
 // After this call make sure that router.Init(s) is invoked.
 func InitNewServerWithDB(cfg config.Server, db *sql.DB) (*Server, error) {
 	configMailer := config.GetMailerConfig(cfg)
-	mailerMailer, err := mailer.NewWithConfig(configMailer)
+	smtpMailTransportConfig := config.GetSMTPConfig(cfg)
+	mailerMailer, err := mailer.NewWithConfig(configMailer, smtpMailTransportConfig)
 	if err != nil {
 		return nil, err
 	}

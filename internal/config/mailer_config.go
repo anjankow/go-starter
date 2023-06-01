@@ -1,7 +1,5 @@
 package config
 
-import "allaboutapps.dev/aw/go-starter/internal/mailer/transport"
-
 type MailerTransporter string
 
 var (
@@ -18,5 +16,4 @@ type Mailer struct {
 	Send                        bool
 	WebTemplatesEmailBaseDirAbs string
 	Transporter                 string
-	SMTP                        transport.SMTPMailTransportConfig
 }

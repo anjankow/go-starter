@@ -51,7 +51,7 @@ go-lint: ##- (opt) Runs golangci-lint.
 
 go-generate: ##- (opt) Go code generation: wire, internal/api/handlers/handlers.go binding
 	gsdev handlers gen
-	wire gen ./...
+	@$(MAKE) wire
 
 check-handlers: ##- (opt) Checks if implemented handlers match their spec (path).
 	gsdev handlers check
@@ -396,6 +396,9 @@ force-module-name: ##- Overwrite occurrences of 'allaboutapps.dev/aw/go-starter'
 
 get-go-ldflags: ##- (opt) Prints used -ldflags as evaluated in Makefile used in make go-build
 	@echo $(LDFLAGS)
+
+wire: ## Wire files generation
+	wire gen ./...
 
 # https://gist.github.com/prwhite/8168133 - based on comment from @m000
 help: ##- Show common make targets.
