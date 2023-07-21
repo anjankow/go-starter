@@ -12,6 +12,7 @@ import (
 	"allaboutapps.dev/aw/go-starter/internal/mailer"
 	"allaboutapps.dev/aw/go-starter/internal/persistence"
 	"database/sql"
+	"github.com/google/wire"
 )
 
 import (
@@ -71,3 +72,7 @@ func InitNewServerWithDB(cfg config.Server, db *sql.DB) (*Server, error) {
 	server := newServerWithComponents(cfg, db, mailerMailer, service, i18nService)
 	return server, nil
 }
+
+// wire.go:
+
+var MailerSet = wire.NewSet(config.GetMailerConfig, config.GetSMTPConfig, mailer.NewWithConfig)

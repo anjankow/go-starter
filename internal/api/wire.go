@@ -1,3 +1,4 @@
+// go:build wireinject
 //go:build wireinject
 // +build wireinject
 
@@ -26,7 +27,7 @@ func InitNewServer(
 	wire.Build(newServerWithComponents,
 		NewPush,
 		persistence.NewDB,
-		config.GetMailerConfig, config.GetSMTPConfig, mailer.NewWithConfig,
+		MailerSet,
 		config.GetI18nConfig, i18n.New,
 	)
 	return new(Server), nil
@@ -42,8 +43,10 @@ func InitNewServerWithDB(
 ) (*Server, error) {
 	wire.Build(newServerWithComponents,
 		NewPush,
-		config.GetMailerConfig, config.GetSMTPConfig, mailer.NewWithConfig,
+		MailerSet,
 		config.GetI18nConfig, i18n.New,
 	)
 	return new(Server), nil
 }
+
+var MailerSet = wire.NewSet(config.GetMailerConfig, config.GetSMTPConfig, mailer.NewWithConfig)

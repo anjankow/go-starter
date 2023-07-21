@@ -68,7 +68,7 @@ func execClosureNewTestServer(ctx context.Context, t *testing.T, config config.S
 
 	s, err := api.InitNewServerWithDB(config, db)
 	if err != nil {
-		t.Fatalf("Failed to init i18n service: %v", err)
+		t.Fatalf("Failed to init a new server: %v", err)
 	}
 	router.Init(s)
 
