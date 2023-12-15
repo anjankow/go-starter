@@ -9,14 +9,12 @@
 - Please follow the update process in *[I just want to update / upgrade my project!](https://github.com/allaboutapps/go-starter/wiki/FAQ#i-just-want-to-update--upgrade-my-project)*.
 
 ## Unreleased
-- **BREAKING** Integrated [wire](https://github.com/google/wire) code generation tool. Please refer to [special changelog instructions](https://github.com/allaboutapps/go-starter/wiki#special-changelog-instructions) for details on how to apply it to your project.
+- Migration to Docker Compose V2 ([Docker Compose Docs](https://docs.docker.com/compose/reference/))
+- **BREAKING** Integrated [wire](https://github.com/google/wire) code generation tool. Please refer to [the details on how to apply it to your project](/docs/server-initialization-via-wire.md).
   - Used for `Server` initialization via `InitNewServer` and `InitNewServerWithDB` functions
   - Replaced `Init*` methods on `Server` struct with corresponding providers defined accoding to the [wire guideline](https://github.com/google/wire/blob/main/docs/guide.md#defining-providers)
   - Moved `SMTPMailTransportConfig` from `Server` config to `Mailer` config
 - Added `IsStructInitialized` function and used it to check if server is ready
-
-
-- Migration to Docker Compose V2 ([Docker Compose Docs](https://docs.docker.com/compose/reference/))
 
 ## 2023-05-03
 - Switch [from Go 1.19.3 to Go 1.20.3](https://go.dev/doc/devel/release#go1.20) (requires `./docker-helper.sh --rebuild`).
