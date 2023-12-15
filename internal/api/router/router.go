@@ -186,6 +186,8 @@ func Init(s *api.Server) {
 			},
 		})),
 
+		// Quality Assurance endpoints, disabled on prod
+		APIV1QA: s.Echo.Group("/api/v1/qa", middleware.Auth(s)),
 		// Your other endpoints, typically secured by bearer auth, available at /api/v1/**
 		APIV1Push: s.Echo.Group("/api/v1/push", middleware.Auth(s)),
 	}

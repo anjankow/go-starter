@@ -20,7 +20,7 @@ func getPushTestHandler(s *api.Server) echo.HandlerFunc {
 
 		user := auth.UserFromEchoContext(c)
 
-		err := s.Push.SendToUser(ctx, user, "Hello", "World")
+		err := s.Push.SendToUser(ctx, user, "Hello", "World", make(map[string]string), false)
 		if err != nil {
 			log.Debug().Err(err).Str("user_id", user.ID).Msg("Error while sending push to user.")
 			return err

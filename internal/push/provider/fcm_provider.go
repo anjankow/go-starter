@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"allaboutapps.dev/aw/go-starter/internal/push"
+	"allaboutapps.dev/aw/go-starter/internal/util"
 	"google.golang.org/api/fcm/v1"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/option"
@@ -20,6 +21,7 @@ type FCMConfig struct {
 	GoogleApplicationCredentials string `json:"-"` // sensitive
 	ProjectID                    string
 	ValidateOnly                 bool
+	DebugPayload                 bool
 }
 
 func NewFCM(config FCMConfig, opts ...option.ClientOption) (*FCM, error) {
@@ -39,21 +41,42 @@ func (p *FCM) GetProviderType() push.ProviderType {
 	return push.ProviderTypeFCM
 }
 
-func (p *FCM) Send(token string, title string, message string) push.ProviderSendResponse {
+func (p *FCM) Send(token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) push.ProviderSendResponse {
+	ctx := context.Background()
+	return p.SendWithContext(ctx, token, title, message, data, silent, collapseKey...)
+}
+
+func (p *FCM) SendWithContext(ctx context.Context, token string, title string, message string, data map[string]string, silent bool, collapseKey ...string) push.ProviderSendResponse {
+	log := util.LogFromContext(ctx)
+
 	// https: //godoc.org/google.golang.org/api/fcm/v1#SendMessageRequest
 	// https://firebase.google.com/docs/cloud-messaging/send-message#rest
+	data["title"] = title
+	data["message"] = message
+
 	messageRequest := &fcm.SendMessageRequest{
 		ValidateOnly: p.Config.ValidateOnly,
 		Message: &fcm.Message{
 			Token: token,
-			Notification: &fcm.Notification{
-				Title: title,
-				Body:  message,
-			},
+			Data:  data,
 		},
 	}
 
-	_, err := p.service.Projects.Messages.Send("projects/"+p.Config.ProjectID, messageRequest).Do()
+	if silent {
+		messageRequest.Message.Android = &fcm.AndroidConfig{
+			Priority: "NORMAL",
+		}
+		if len(collapseKey) == 1 {
+			messageRequest.Message.Android.CollapseKey = collapseKey[0]
+		}
+	}
+
+	res, err := p.service.Projects.Messages.Send("projects/"+p.Config.ProjectID, messageRequest).Context(ctx).Do()
+	if p.Config.DebugPayload {
+		log.Debug().Str("token", token).Interface("notification", messageRequest.Message).Msg("FCM notification")
+		log.Debug().Str("token", token).Interface("response", res).Msg("FCM response")
+	}
+
 	valid := true
 	if err != nil {
 
@@ -71,6 +94,6 @@ func (p *FCM) Send(token string, title string, message string) push.ProviderSend
 	}
 }
 
-func (p *FCM) SendMulticast(tokens []string, title, message string) []push.ProviderSendResponse {
-	return sendMulticastWithProvider(p, tokens, title, message)
+func (p *FCM) SendMulticast(tokens []string, title string, message string, data map[string]string, silent bool, collapseKey ...string) []push.ProviderSendResponse {
+	return sendMulticastWithProvider(p, tokens, title, message, data, silent, collapseKey...)
 }

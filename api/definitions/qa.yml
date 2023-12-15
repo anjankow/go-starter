@@ -1,0 +1,21 @@
+swagger: "2.0"
+info:
+  title: allaboutapps.dev/aw/go-starter
+  version: 0.1.0
+paths: {}
+definitions:
+  PushTestPayload:
+    type: object
+    properties:
+      title:
+        description: Push notification title
+        type: string
+        default: "Hello"
+      message:
+        description: Push notification content
+        type: string
+        default: "World"
+      data:
+        type: object
+        additionalProperties:
+          type: string

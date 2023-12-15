@@ -1,0 +1,24 @@
+swagger: "2.0"
+info:
+  title: allaboutapps.dev/aw/go-starter
+  version: 0.1.0
+paths:
+  /api/v1/qa/push:
+    post:
+      security:
+        - Bearer: []
+      description: |
+        Sends a push notification with the given content to the current user.
+
+        Quality Assurance test endpoint. Has to be explicitly enabled with the env variable SERVER_PUSH_ENABLE_TEST_ENDPOINT.
+      tags:
+        - qa
+      operationId: PostQAPushRoute
+      parameters:
+        - name: Payload
+          in: body
+          schema:
+            $ref: "../definitions/qa.yml#/definitions/PushTestPayload"
+      responses:
+        "200":
+          description: OK
