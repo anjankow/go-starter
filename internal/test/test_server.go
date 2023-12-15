@@ -66,23 +66,15 @@ func execClosureNewTestServer(ctx context.Context, t *testing.T, config config.S
 	// You may use port 0 to indicate you're not specifying an exact port but you want a free, available port selected by the system
 	config.Echo.ListenAddress = ":0"
 
-	s := api.NewServer(config)
-
-	// attach the already initialized db
-	s.DB = db
-
-	if err := s.InitMailer(); err != nil {
-		t.Fatalf("Failed to init mailer: %v", err)
+	s, err := api.InitNewServerWithDB(config, db)
+	if err != nil {
+		t.Fatalf("Failed to init a new server: %v", err)
 	}
-
-	// attach any other mocks
-	s.Push = NewTestPusher(t, db)
-
-	if err := s.InitI18n(); err != nil {
-		t.Fatalf("Failed to init i18n service: %v", err)
-	}
-
 	router.Init(s)
+
+	if !s.Ready() {
+		t.Fatalf("Server not ready, can't execute the closure")
+	}
 
 	closure(s)
 

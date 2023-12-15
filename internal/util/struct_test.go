@@ -177,6 +177,98 @@ func TestGetFieldsImplementingSuccess(t *testing.T) {
 
 }
 
+func TestIsStructInitializedNoError(t *testing.T) {
+
+	{
+		testStruct := &testStructEmpty{}
+		assert.NoError(t, util.IsStructInitialized(testStruct))
+	}
+	{
+		testStruct := &testStructPrivateFiled{privateMember: bytes.NewBufferString("my content")}
+		assert.NoError(t, util.IsStructInitialized(testStruct))
+	}
+	{
+		testStruct := &testStructPrimitives{
+			X:    1,
+			Y:    "blabla",
+			XPtr: new(int),
+			YPtr: new(string),
+		}
+		assert.NoError(t, util.IsStructInitialized(testStruct))
+	}
+	{
+		testStruct := &testStructMapsAndSlices{
+			MapMember:   make(map[string]int, 0),
+			SliceMember: make([]int, 0),
+		}
+		assert.NoError(t, util.IsStructInitialized(testStruct))
+	}
+	{
+		testStruct := &testStructMemberStruct{
+			Member: *bytes.NewBufferString("my content"),
+		}
+		assert.NoError(t, util.IsStructInitialized(testStruct))
+	}
+	{
+		testStruct := &testStructMemberStructPtr{
+			Member: bytes.NewBufferString("my content"),
+		}
+		assert.NoError(t, util.IsStructInitialized(testStruct))
+	}
+	{
+		testStruct := &testStructMemberInterface{
+			Member: bytes.NewBufferString("my content"),
+		}
+		assert.NoError(t, util.IsStructInitialized(testStruct))
+	}
+
+}
+
+func TestIsStructInitializedError(t *testing.T) {
+
+	{
+		testStruct := &testStructPrivateFiled{}
+		err := util.IsStructInitialized(testStruct)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "privateMember")
+	}
+	{
+		testStruct := &testStructPrimitives{}
+		err := util.IsStructInitialized(testStruct)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "X")
+		assert.Contains(t, err.Error(), "Y")
+		assert.Contains(t, err.Error(), "XPtr")
+		assert.Contains(t, err.Error(), "YPtr")
+	}
+	{
+		testStruct := &testStructMapsAndSlices{}
+		err := util.IsStructInitialized(testStruct)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "MapMember")
+		assert.Contains(t, err.Error(), "SliceMember")
+	}
+	{
+		testStruct := &testStructMemberStruct{}
+		err := util.IsStructInitialized(testStruct)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Member")
+	}
+	{
+		testStruct := &testStructMemberStructPtr{}
+		err := util.IsStructInitialized(testStruct)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Member")
+	}
+	{
+		testStruct := &testStructMemberInterface{}
+		err := util.IsStructInitialized(testStruct)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Member")
+	}
+
+}
+
 type testStructEmpty struct {
 }
 
@@ -189,6 +281,11 @@ type testStructPrimitives struct {
 	Y    string
 	XPtr *int
 	YPtr *string
+}
+
+type testStructMapsAndSlices struct {
+	MapMember   map[string]int
+	SliceMember []int
 }
 
 type testStructMemberStruct struct {

@@ -11,6 +11,7 @@ package tools
 // Other tooling may be installed as *static binary* directly within the Dockerfile
 
 import (
+	_ "github.com/google/wire/cmd/wire"
 	_ "github.com/rubenv/sql-migrate/sql-migrate"
 	_ "github.com/volatiletech/sqlboiler/v4"
 	_ "github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-psql"

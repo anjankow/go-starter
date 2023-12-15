@@ -239,3 +239,18 @@ func DefaultServiceConfigFromEnv() Server {
 	}
 
 }
+
+// GetMailerConfig for wire usage
+func GetMailerConfig(cfg Server) Mailer {
+	return cfg.Mailer
+}
+
+// GetSMTPConfig for wire usage
+func GetSMTPConfig(cfg Server) transport.SMTPMailTransportConfig {
+	return cfg.SMTP
+}
+
+// GetI18nConfig for wire usage
+func GetI18nConfig(cfg Server) I18n {
+	return cfg.I18n
+}

@@ -4,14 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"allaboutapps.dev/aw/go-starter/internal/config"
 	"allaboutapps.dev/aw/go-starter/internal/i18n"
 	"allaboutapps.dev/aw/go-starter/internal/mailer"
-	"allaboutapps.dev/aw/go-starter/internal/mailer/transport"
 	"allaboutapps.dev/aw/go-starter/internal/push"
-	"allaboutapps.dev/aw/go-starter/internal/push/provider"
+	"allaboutapps.dev/aw/go-starter/internal/util"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 
@@ -27,112 +25,65 @@ type Router struct {
 	APIV1Push  *echo.Group
 }
 
+// Server is a central struct keeping all the dependencies.
+// It is initialized with wire, which handles making the new instances of the components
+// in the right order. To add a new component, 3 steps are required:
+// - declaring it in this struct
+// - adding a provider function in providers.go
+// - adding the provider's function name to the arguments of wire.Build() in wire.go
+//
+// Components labeled as `wire:"-"` will be skipped and have to be initialized after the InitNewServer* call.
+// For more information about wire refer to https://pkg.go.dev/github.com/google/wire
 type Server struct {
+	// skip wire:
+	// -> initialized with router.Init(s) function
+	Echo   *echo.Echo `wire:"-"`
+	Router *Router    `wire:"-"`
+
+	// wire:
 	Config config.Server
 	DB     *sql.DB
-	Echo   *echo.Echo
-	Router *Router
+
 	Mailer *mailer.Mailer
 	Push   *push.Service
 	I18n   *i18n.Service
 }
 
+// NewServer returns an empty server instance with only configuration assigned.
+// Use it only if you don't need any components to be initialized.
+// Otherwise consider InitNewServer* functions.
 func NewServer(config config.Server) *Server {
-	s := &Server{
+	return &Server{
 		Config: config,
-		DB:     nil,
-		Echo:   nil,
-		Router: nil,
-		Mailer: nil,
-		Push:   nil,
-		I18n:   nil,
 	}
+}
 
-	return s
+// newServerWithComponents is used by wire to initialize the server components.
+// Components not listed here won't be handled by wire and should be initialized separately.
+// Components which shouldn't be handled must be labeled `wire:"-"` in Server struct.
+func newServerWithComponents(
+	cfg config.Server,
+	db *sql.DB,
+	mail *mailer.Mailer,
+	pusher *push.Service,
+	i18n *i18n.Service,
+) *Server {
+	return &Server{
+		Config: cfg,
+		DB:     db,
+		Mailer: mail,
+		Push:   pusher,
+		I18n:   i18n,
+	}
 }
 
 func (s *Server) Ready() bool {
-	return s.DB != nil &&
-		s.Echo != nil &&
-		s.Router != nil &&
-		s.Mailer != nil &&
-		s.Push != nil &&
-		s.I18n != nil
-}
-
-func (s *Server) InitDB(ctx context.Context) error {
-	db, err := sql.Open("postgres", s.Config.Database.ConnectionString())
-	if err != nil {
-		return err
+	if err := util.IsStructInitialized(s); err != nil {
+		log.Debug().Err(err).Msg("Server is not fully initialized")
+		return false
 	}
 
-	if s.Config.Database.MaxOpenConns > 0 {
-		db.SetMaxOpenConns(s.Config.Database.MaxOpenConns)
-	}
-	if s.Config.Database.MaxIdleConns > 0 {
-		db.SetMaxIdleConns(s.Config.Database.MaxIdleConns)
-	}
-	if s.Config.Database.ConnMaxLifetime > 0 {
-		db.SetConnMaxLifetime(s.Config.Database.ConnMaxLifetime)
-	}
-
-	if err := db.PingContext(ctx); err != nil {
-		return err
-	}
-
-	s.DB = db
-
-	return nil
-}
-
-func (s *Server) InitMailer() error {
-	switch config.MailerTransporter(s.Config.Mailer.Transporter) {
-	case config.MailerTransporterMock:
-		log.Warn().Msg("Initializing mock mailer")
-		s.Mailer = mailer.New(s.Config.Mailer, transport.NewMock())
-	case config.MailerTransporterSMTP:
-		s.Mailer = mailer.New(s.Config.Mailer, transport.NewSMTP(s.Config.SMTP))
-	default:
-		return fmt.Errorf("Unsupported mail transporter: %s", s.Config.Mailer.Transporter)
-	}
-
-	return s.Mailer.ParseTemplates()
-}
-
-func (s *Server) InitPush() error {
-	s.Push = push.New(s.DB)
-
-	if s.Config.Push.UseFCMProvider {
-		fcmProvider, err := provider.NewFCM(s.Config.FCMConfig)
-		if err != nil {
-			return err
-		}
-		s.Push.RegisterProvider(fcmProvider)
-	}
-
-	if s.Config.Push.UseMockProvider {
-		log.Warn().Msg("Initializing mock push provider")
-		mockProvider := provider.NewMock(push.ProviderTypeFCM)
-		s.Push.RegisterProvider(mockProvider)
-	}
-
-	if s.Push.GetProviderCount() < 1 {
-		log.Warn().Msg("No providers registered for push service")
-	}
-
-	return nil
-}
-
-func (s *Server) InitI18n() error {
-	i18nService, err := i18n.New(s.Config.I18n)
-
-	if err != nil {
-		return err
-	}
-
-	s.I18n = i18nService
-
-	return nil
+	return true
 }
 
 func (s *Server) Start() error {
