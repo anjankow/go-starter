@@ -9,9 +9,9 @@
 - Please follow the update process in *[I just want to update / upgrade my project!](https://github.com/allaboutapps/go-starter/wiki/FAQ#i-just-want-to-update--upgrade-my-project)*.
 
 ## Unreleased
-
-
 - Migration to Docker Compose V2 ([Docker Compose Docs](https://docs.docker.com/compose/reference/))
+- Update to [golang:1.21.5-bullseye](https://hub.docker.com/layers/library/golang/1.21.5-bullseye/images/sha256-5ebf2823dcead16c6cb1499b1e25ca2aa9b3098ac3ccb7f68cc2f4143535addc) (requires `./docker-helper.sh --rebuild`)
+  - Minor: [Bump github.com/golangci/golangci-lint from 1.52.2 to 1.55.2](https://github.com/golangci/golangci-lint/releases/tag/v1.55.2)
 
 ## 2023-05-03
 - Switch [from Go 1.19.3 to Go 1.20.3](https://go.dev/doc/devel/release#go1.20) (requires `./docker-helper.sh --rebuild`).
